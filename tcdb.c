@@ -1,5 +1,5 @@
 #include <assert.h>
-#include <strings.h>
+#include <string.h>
 
 #include <tcutil.h>
 
