@@ -6,11 +6,11 @@
 static int cs;
 
 %%{
-	machine RedisParser;
+  machine RedisParser;
 
-	action argnum_add_digit { sc->argnum = sc->argnum * 10 + (fc-'0'); }
-	action argsize_reset { sc->argsize = 0; }
-	action argsize_add_digit { sc->argsize = sc->argsize * 10 + (fc-'0'); }
+  action argnum_add_digit { sc->argnum = sc->argnum * 10 + (fc-'0'); }
+  action argsize_reset { sc->argsize = 0; }
+  action argsize_add_digit { sc->argsize = sc->argsize * 10 + (fc-'0'); }
   action args_init {
     sc->cur_arg = -1;
     sc->args = (char **)malloc(sc->argnum*sizeof(char *));
@@ -41,8 +41,8 @@ static int cs;
 int redis_parser_init(redis_parser_t *sc) {
   sc->argnum = 0;
   sc->argsize = 0;
-	%% write init;
-	return 1;
+  %% write init;
+  return 1;
 }
 
 int redis_parser_free(redis_parser_t *sc) {
@@ -50,21 +50,21 @@ int redis_parser_free(redis_parser_t *sc) {
   for(i=0; i<sc->argnum; ++i) free(sc->args[i]);
   free(sc->args);
   free(sc->arg_sizes);
-	return 1;
+  return 1;
 }
 
 int redis_parser_exec(redis_parser_t *sc, const char *data, int len) {
-	const char *p = data;
-	const char *pe = data + len;
-	%% write exec;
-	if (cs == RedisParser_error) return -1;
-	else if (cs >= RedisParser_first_final) return 1;
-	else return 0;
+  const char *p = data;
+  const char *pe = data + len;
+  %% write exec;
+  if (cs == RedisParser_error) return -1;
+  else if (cs >= RedisParser_first_final) return 1;
+  else return 0;
 }
 
 int redis_parser_finish(redis_parser_t *sc) {
-	if (cs == RedisParser_error) return -1;
-	else if (cs >= RedisParser_first_final) return 1;
-	else return 0;
+  if (cs == RedisParser_error) return -1;
+  else if (cs >= RedisParser_first_final) return 1;
+  else return 0;
 }
 
