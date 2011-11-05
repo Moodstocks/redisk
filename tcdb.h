@@ -31,6 +31,9 @@ bool rk_tcdb_close(rk_tcdb_t *db);
 /** DEL key */
 int rk_tcdb_del(rk_tcdb_t *db, const char *kbuf, int ksiz);
 
+/** EXISTS key */
+int rk_tcdb_exists(rk_tcdb_t *db, const char *kbuf, int ksiz);
+
 /*************************************************
  * STRINGS COMMANDS
  *************************************************/
