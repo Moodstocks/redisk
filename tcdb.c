@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <strings.h>
 
 #include <tcutil.h>
 
@@ -28,6 +29,17 @@ static int rk_tcdb_hash_rnum(TCTDB *db, const char *kbuf, int ksiz);
  *   We could think of optimizing this by maintaining one Hash DB per kind of
  *   encoding (see REDIS_ENCODING_RAW, REDIS_ENCODING_INT, etc).
  */
+
+void rk_tcdb_skel_init(rk_skel_t *skel) {
+  assert(skel);
+  memset(skel, 0, sizeof(*skel));
+  skel->opq = rk_tcdb_new();
+  skel->free = (void (*)(void *))rk_tcdb_free;
+  skel->open = (bool (*)(void *, const char *))rk_tcdb_open;
+  skel->close = (bool (*)(void *))rk_tcdb_close;
+  skel->get = (char *(*)(void *, const char *, int, int *))rk_tcdb_get;
+  skel->set = (bool (*)(void *, const char *, int, const char *, int))rk_tcdb_set;
+}
 
 rk_tcdb_t *rk_tcdb_new(void) {
   rk_tcdb_t *db = malloc(sizeof(*db));

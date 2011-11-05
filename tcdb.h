@@ -4,12 +4,17 @@
 #include <tchdb.h>
 #include <tctdb.h>
 
+#include "skel.h"
+
 typedef struct rk_tcdb_t_ {
   bool open;                /* successful open flag */
   TCHDB *str;               /* main database for strings commands */
   TCTDB *hsh;               /* database for hashes commands */
   TCTDB *set;               /* database for sets commands */
 } rk_tcdb_t;
+
+/** Skeleton initialization */
+void rk_tcdb_skel_init(rk_skel_t *skel);
 
 rk_tcdb_t *rk_tcdb_new(void);
 
