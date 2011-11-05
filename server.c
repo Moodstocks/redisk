@@ -54,7 +54,7 @@ void on_read(uv_stream_t *tcp, ssize_t nread, uv_buf_t buf) {
     int finish_state = redis_parser_finish(&rparser);
   	if (finish_state <= 0) {
       printf("parsing error (%d)\ninput was:\n", finish_state);
-      printf(buf.base);
+      printf("%s\n", buf.base);
       redis_parser_free(&rparser);
       exit(1); // be violent...
     }
