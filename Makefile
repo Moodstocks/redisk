@@ -1,5 +1,9 @@
 CC=gcc
+UNAME=$(shell uname)
 CFLAGS= -Wall -Werror
+_Darwin_ldlags= -lm -lpthread
+_Linux_ldflags= -lrt -lm -lpthread
+LDFLAGS=$(_$(UNAME)_ldflags)
 RAGEL=ragel -G2
 
 CBUILD=$(CC) $(CFLAGS)
@@ -19,7 +23,7 @@ parser-test: parser.o parser-test.c
 	$(CBUILD) -o parser-test parser.o parser-test.c
 
 redisk: server.c parser.o deps/libuv/uv.a
-	$(CBUILD) -I. -Ideps/libuv/include -lrt -lm -lpthread \
+	$(CBUILD) -I. -Ideps/libuv/include $(LDFLAGS) \
 		-o redisk server.c parser.o deps/libuv/uv.a
 
 redis-cli-test: redis-cli-test.c
