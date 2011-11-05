@@ -8,6 +8,8 @@ RAGEL=ragel -G2
 
 CBUILD=$(CC) $(CFLAGS)
 
+REDISK_DEPS= server.c parser.o resolving.o tcdb.o deps/libuv/uv.a deps/tokyocabinet-1.4.47/libtokyocabinet.a
+
 all: redisk parser-test redis-cli-test
 
 deps/libuv/uv.a:
@@ -25,17 +27,19 @@ parser.c: parser.rl
 
 parser.o: parser.c
 	$(CBUILD) -c -o parser.o parser.c
-	
+
+resolving.o: resolving.c
+	$(CBUILD) -c -o resolving.o resolving.c
+
 tcdb.o: tcdb.c deps/tokyocabinet-1.4.47/libtokyocabinet.a
 	$(CBUILD) -c -o tcdb.o tcdb.c -Ideps/tokyocabinet-1.4.47
 
 parser-test: parser.o parser-test.c
 	$(CBUILD) -o parser-test parser.o parser-test.c
 
-redisk: server.c parser.o tcdb.o deps/libuv/uv.a
-	$(CBUILD) -I. -Ideps/libuv/include $(LDFLAGS) \
-		-o redisk server.c parser.o tcdb.o deps/libuv/uv.a \
-		-Ideps/tokyocabinet-1.4.47 deps/tokyocabinet-1.4.47/libtokyocabinet.a
+redisk: $(REDISK_DEPS)
+	$(CBUILD) -I. -Ideps/libuv/include -Ideps/tokyocabinet-1.4.47 $(LDFLAGS) \
+		-o redisk $(REDISK_DEPS)
 
 redis-cli-test: redis-cli-test.c
 	$(CBUILD) -o redis-cli-test redis-cli-test.c

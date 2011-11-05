@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "resolving.h"
 #include "parser.h"
 #include "deps/libuv/include/uv.h"
 
@@ -34,12 +35,12 @@ uv_buf_t on_alloc(uv_handle_t *client, size_t suggested_size) {
 }
 
 void after_write(uv_write_t *req, int status) {
-  //client_t *client = (client_t *)client;
   if (status) {
     uv_err_t err = uv_last_error(uv_loop);
     fprintf(stderr, "write error: %s\n", uv_strerror(err));
     exit(1);
   }
+  // TODO free(buf.base);
   //uv_close((uv_handle_t*)req->handle, on_close);
 }
 
@@ -63,10 +64,12 @@ void on_read(uv_stream_t *tcp, ssize_t nread, uv_buf_t buf) {
     for(i=0; i<rparser.argnum; ++i)
       printf("  %.*s\n", (int)rparser.arg_sizes[i], rparser.args[i]);
 
-    // TODO call real methods
+    int rsiz;
+    char *rbuf;
+    resolve(rparser.argnum, rparser.args, rparser.arg_sizes, &rsiz, &rbuf);
 
-    client->buf.base = OK_RESPONSE;
-    client->buf.len = sizeof(OK_RESPONSE);
+    client->buf.base = rbuf;
+    client->buf.len = rsiz;
     redis_parser_free(&rparser);
     uv_write( &client->write_req, (uv_stream_t *)&client->handle,
               &client->buf, 1, after_write );
