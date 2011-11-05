@@ -24,11 +24,14 @@ parser.c: parser.rl
 
 parser.o: parser.c
 	$(CBUILD) -c -o parser.o parser.c
+	
+tcdb.o: tcdb.c deps/tokyocabinet-1.4.47/libtokyocabinet.a
+	$(CBUILD) -c -o tcdb.o tcdb.c -Ideps/tokyocabinet-1.4.47
 
 parser-test: parser.o parser-test.c
 	$(CBUILD) -o parser-test parser.o parser-test.c
 
-redisk: server.c parser.o deps/libuv/uv.a
+redisk: server.c parser.o tcdb.o deps/libuv/uv.a
 	$(CBUILD) -I. -Ideps/libuv/include $(LDFLAGS) \
 		-o redisk server.c parser.o deps/libuv/uv.a
 
@@ -39,6 +42,7 @@ clean:
 	rm -f redisk
 	rm -f parser.o
 	rm -f parser.c
+	rm -f tcdb.o
 	rm -f parser-test
 	rm -f redis-cli-test
 
