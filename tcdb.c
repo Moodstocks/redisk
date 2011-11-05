@@ -15,7 +15,7 @@ static int rk_tcdb_hash_out(TCTDB *db, const char *kbuf, int ksiz,
                             const char *fbuf, int fsiz);
 static int rk_tcdb_hash_put_keep(TCTDB *db, const char *kbuf, int ksiz,
                                  const char *fbuf, int fsiz, const char *vbuf, int vsiz);
-static int rk_tcdb_hash_search(TCTDB *db, const char *kbuf, int ksiz,
+static int rk_tcdb_hash_exists(TCTDB *db, const char *kbuf, int ksiz,
                                const char *fbuf, int fsiz);
 static int rk_tcdb_hash_rnum(TCTDB *db, const char *kbuf, int ksiz);
 
@@ -189,7 +189,7 @@ int rk_tcdb_hexists(rk_tcdb_t *db, const char *kbuf, int ksiz,
                     const char *fbuf, int fsiz) {
   assert(db && kbuf && ksiz >= 0 && fbuf && fsiz >= 0);
   if (!db->open) return -1;
-  return rk_tcdb_hash_search(db->hsh, kbuf, ksiz, fbuf, fsiz);
+  return rk_tcdb_hash_exists(db->hsh, kbuf, ksiz, fbuf, fsiz);
 }
 
 int rk_tcdb_hlen(rk_tcdb_t *db, const char *kbuf, int ksiz) {
@@ -222,7 +222,7 @@ int rk_tcdb_sismember(rk_tcdb_t *db, const char *kbuf, int ksiz,
                       const char *mbuf, int msiz) {
   assert(db && kbuf && ksiz >= 0 && mbuf && msiz >= 0);
   if (!db->open) return -1;
-  return rk_tcdb_hash_search(db->set, kbuf, ksiz, mbuf, msiz);
+  return rk_tcdb_hash_exists(db->set, kbuf, ksiz, mbuf, msiz);
 }
 
 static int64_t rk_tcdb_add_int(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t num) {
@@ -322,7 +322,7 @@ static int rk_tcdb_hash_put_keep(TCTDB *db, const char *kbuf, int ksiz,
   return err ? -1 : rv;                                       
 }
 
-static int rk_tcdb_hash_search(TCTDB *db, const char *kbuf, int ksiz,
+static int rk_tcdb_hash_exists(TCTDB *db, const char *kbuf, int ksiz,
                                const char *fbuf, int fsiz) {
   assert(db && kbuf && ksiz >= 0 && fbuf && fsiz >= 0);
   TCMAP *cols = NULL;
