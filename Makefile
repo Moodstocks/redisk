@@ -1,0 +1,36 @@
+CC=gcc
+CFLAGS= -Wall -Werror
+RAGEL=ragel -G2
+
+CBUILD=$(CC) $(CFLAGS)
+
+all: redisk parser-test redis-cli-test
+
+deps/libuv/uv.a:
+	$(MAKE) -C deps/libuv
+
+parser.c: parser.rl
+	$(RAGEL) parser.rl
+
+parser.o: parser.c
+	$(CBUILD) -c -o parser.o parser.c
+
+parser-test: parser.o parser-test.c
+	$(CBUILD) -o parser-test parser.o parser-test.c
+
+redisk: server.c parser.o deps/libuv/uv.a
+	$(CBUILD) -I. -Ideps/libuv/include -lrt -lm -lpthread \
+		-o redisk server.c parser.o deps/libuv/uv.a
+
+redis-cli-test: redis-cli-test.c
+	$(CBUILD) -o redis-cli-test redis-cli-test.c
+
+clean:
+	rm -f redisk
+	rm -f parser.o
+	rm -f parser.c
+	rm -f parser-test
+	rm -f redis-cli-test
+
+all-clean: clean
+	rm -f deps/libuv/uv.a
