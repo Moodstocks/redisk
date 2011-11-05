@@ -49,6 +49,7 @@ clean:
 	rm -f parser.o
 	rm -f parser.c
 	rm -f tcdb.o
+	rm -f resolving.o
 	rm -f parser-test
 	rm -f redis-cli-test
 
