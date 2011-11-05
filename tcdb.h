@@ -25,6 +25,13 @@ bool rk_tcdb_open(rk_tcdb_t *db, const char *path);
 bool rk_tcdb_close(rk_tcdb_t *db);
 
 /*************************************************
+ * KEYS COMMANDS
+ *************************************************/
+ 
+/** DEL key */
+int rk_tcdb_del(rk_tcdb_t *db, const char *kbuf, int ksiz);
+
+/*************************************************
  * STRINGS COMMANDS
  *************************************************/
 

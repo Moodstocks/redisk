@@ -5,7 +5,22 @@
 
 #include "tcdb.h"
 
+/** Redis object types */
+enum {
+  RK_TCDB_NONE      = -1,
+  RK_TCDB_STRING    = 0,
+  RK_TCDB_LIST      = 1,
+  RK_TCDB_SET       = 2,
+  RK_TCDB_ZSET      = 3,
+  RK_TCDB_HASH      = 4
+};
+
+/* Private macro */
+#define RKTCDBOCHECK(RK_type, RK_exp)                            \
+  (((RK_type) >= 0 && (RK_type) != (RK_exp)) ? false : true)
+
 /** Private function prototypes */
+static int rk_tcdb_obj_search(rk_tcdb_t *db, const char *kbuf, int ksiz, int *type);
 static int64_t rk_tcdb_add_int(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t num);
 char *rk_tcdb_hash_get(TCTDB *db, const char *kbuf, int ksiz,
                        const char *fbuf, int fsiz, int *sp);
@@ -109,21 +124,55 @@ bool rk_tcdb_close(rk_tcdb_t *db) {
   return !err;
 }
 
+int rk_tcdb_del(rk_tcdb_t *db, const char *kbuf, int ksiz) {
+  assert(db && kbuf && ksiz);
+  if (!db->open) return -1;
+  if (!tchdbout(db->str, kbuf, ksiz)) {
+    if (tchdbecode(db->str) != TCENOREC) return -1;
+  }
+  else return 1;
+  if (!tctdbout(db->hsh, kbuf, ksiz)) {
+    if (tctdbecode(db->hsh) != TCENOREC) return -1;
+  }
+  else return 1;
+  if (!tctdbout(db->set, kbuf, ksiz)) {
+    if (tctdbecode(db->set) != TCENOREC) return -1;
+  }
+  else return 1;
+  return 0;
+}
+
 char *rk_tcdb_get(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp) {
   assert(db && kbuf && ksiz >= 0 && sp);
   if (!db->open) return NULL;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
+  if (!RKTCDBOCHECK(type, RK_TCDB_STRING)) return NULL;
   return tchdbget(db->str, kbuf, ksiz, sp);
 }
 
 bool rk_tcdb_set(rk_tcdb_t *db, const char *kbuf, int ksiz, const char *vbuf, int vsiz) {
   assert(db && kbuf && ksiz >= 0 && vbuf && vsiz >= 0);
   if (!db->open) return NULL;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return false;
+  if (!RKTCDBOCHECK(type, RK_TCDB_STRING)) {
+    /* According to Redis spec "if key already holds a value, it is
+       overwritten, regardless of its type" */
+    if (!rk_tcdb_del(db, kbuf, ksiz)) return false;
+  }
   return tchdbput(db->str, kbuf, ksiz, vbuf, vsiz);
 }
 
 int rk_tcdb_setnx(rk_tcdb_t *db, const char *kbuf, int ksiz, const char *vbuf, int vsiz) {
   assert(db && kbuf && ksiz >= 0 && vbuf && vsiz >= 0);
   if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_STRING)) {
+    /* SETNX behaves the same than SET regarding overwriting */
+    if (!rk_tcdb_del(db, kbuf, ksiz)) return -1;
+  }
   int rv = 1;
   if (!tchdbputkeep(db->str, kbuf, ksiz, vbuf, vsiz)) {
     rv = (tchdbecode(db->str) == TCEKEEP) ? 0 : -1;
@@ -136,24 +185,36 @@ int64_t rk_tcdb_incr(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   if (!db->open) return INT_MIN;
   /* TODO: see above NOTES */
   /* return tchdbaddint(db->str, kbuf, ksiz, 1); */
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return INT_MIN;
+  if (!RKTCDBOCHECK(type, RK_TCDB_STRING)) return INT_MIN;
   return rk_tcdb_add_int(db, kbuf, ksiz, 1);
 }
 
 int64_t rk_tcdb_decr(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   assert(db && kbuf && ksiz >= 0);
   if (!db->open) return INT_MIN;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return INT_MIN;
+  if (!RKTCDBOCHECK(type, RK_TCDB_STRING)) return INT_MIN;
   return rk_tcdb_add_int(db, kbuf, ksiz, -1);
 }
 
 int64_t rk_tcdb_incrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t inc) {
   assert(db && kbuf && ksiz >= 0);
   if (!db->open) return INT_MIN;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return INT_MIN;
+  if (!RKTCDBOCHECK(type, RK_TCDB_STRING)) return INT_MIN;
   return rk_tcdb_add_int(db, kbuf, ksiz, inc);
 }
 
 int64_t rk_tcdb_decrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int dec) {
   assert(db && kbuf && ksiz >= 0);
   if (!db->open) return INT_MIN;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return INT_MIN;
+  if (!RKTCDBOCHECK(type, RK_TCDB_STRING)) return INT_MIN;
   return rk_tcdb_add_int(db, kbuf, ksiz, -dec);
 }
 
@@ -161,6 +222,9 @@ char *rk_tcdb_hget(rk_tcdb_t *db, const char *kbuf, int ksiz,
                    const char *fbuf, int fsiz, int *sp) {
   assert(db && kbuf && ksiz >= 0 && fbuf && fsiz >= 0 && sp);
   if (!db->open) return NULL;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
+  if (!RKTCDBOCHECK(type, RK_TCDB_HASH)) return NULL;
   return rk_tcdb_hash_get(db->hsh, kbuf, ksiz, fbuf, fsiz, sp);
 }
 
@@ -168,6 +232,9 @@ int rk_tcdb_hset(rk_tcdb_t *db, const char *kbuf, int ksiz,
                  const char *fbuf, int fsiz, const char *vbuf, int vsiz) {
   assert(db && kbuf && ksiz >= 0 && fbuf && fsiz >= 0 && vbuf && vsiz >= 0);
   if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_HASH)) return -1;
   return rk_tcdb_hash_put(db->hsh, kbuf, ksiz, fbuf, fsiz, vbuf, vsiz);
 }
 
@@ -175,6 +242,9 @@ int rk_tcdb_hdel(rk_tcdb_t *db, const char *kbuf, int ksiz,
                  const char *fbuf, int fsiz) {
   assert(db && kbuf && ksiz >= 0 && fbuf && fsiz >= 0);
   if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_HASH)) return -1;
   return rk_tcdb_hash_out(db->hsh, kbuf, ksiz, fbuf, fsiz);
 }
 
@@ -182,6 +252,9 @@ int rk_tcdb_hsetnx(rk_tcdb_t *db, const char *kbuf, int ksiz,
                    const char *fbuf, int fsiz, const char *vbuf, int vsiz) {
   assert(db && kbuf && ksiz >= 0 && fbuf && fsiz >= 0 && vbuf && vsiz >= 0);
   if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_HASH)) return -1;
   return rk_tcdb_hash_put_keep(db->hsh, kbuf, ksiz, fbuf, fsiz, vbuf, vsiz);  
 }
 
@@ -189,12 +262,18 @@ int rk_tcdb_hexists(rk_tcdb_t *db, const char *kbuf, int ksiz,
                     const char *fbuf, int fsiz) {
   assert(db && kbuf && ksiz >= 0 && fbuf && fsiz >= 0);
   if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_HASH)) return -1;
   return rk_tcdb_hash_exists(db->hsh, kbuf, ksiz, fbuf, fsiz);
 }
 
 int rk_tcdb_hlen(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   assert(db && kbuf && ksiz >= 0);
   if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_HASH)) return -1;
   return rk_tcdb_hash_rnum(db->hsh, kbuf, ksiz);  
 }
 
@@ -202,6 +281,9 @@ int rk_tcdb_sadd(rk_tcdb_t *db, const char *kbuf, int ksiz,
                  const char *mbuf, int msiz) {
   assert(db && kbuf && ksiz >= 0 && mbuf && msiz >= 0);
   if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_SET)) return -1;
   return rk_tcdb_hash_put(db->set, kbuf, ksiz, mbuf, msiz, "", 0);              
 }
 
@@ -209,12 +291,18 @@ int rk_tcdb_srem(rk_tcdb_t *db, const char *kbuf, int ksiz,
                  const char *mbuf, int msiz) {
   assert(db && kbuf && ksiz >= 0 && mbuf && msiz >= 0);
   if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_SET)) return -1;
   return rk_tcdb_hash_out(db->set, kbuf, ksiz, mbuf, msiz);
 }
 
 int rk_tcdb_scard(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   assert(db && kbuf && ksiz >= 0);
   if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_SET)) return -1;
   return rk_tcdb_hash_rnum(db->set, kbuf, ksiz);
 }
 
@@ -222,7 +310,37 @@ int rk_tcdb_sismember(rk_tcdb_t *db, const char *kbuf, int ksiz,
                       const char *mbuf, int msiz) {
   assert(db && kbuf && ksiz >= 0 && mbuf && msiz >= 0);
   if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_SET)) return -1;
   return rk_tcdb_hash_exists(db->set, kbuf, ksiz, mbuf, msiz);
+}
+
+static int rk_tcdb_obj_search(rk_tcdb_t *db, const char *kbuf, int ksiz, int *type) {
+  assert(db && kbuf && ksiz >= 0 && type);
+  if (!tchdbiterinit2(db->str, kbuf, ksiz)) {
+    if (tchdbecode(db->str) != TCENOREC) return -1;
+  }
+  else {
+    *type = RK_TCDB_STRING;
+    return 1;
+  }
+  if (!tctdbiterinit2(db->hsh, kbuf, ksiz)) {
+    if (tctdbecode(db->hsh) != TCENOREC) return -1;
+  }
+  else {
+    *type = RK_TCDB_HASH;
+    return 1;
+  }
+  if (!tctdbiterinit2(db->set, kbuf, ksiz)) {
+    if (tctdbecode(db->set) != TCENOREC) return -1;
+  }
+  else {
+    *type = RK_TCDB_SET;
+    return 1;
+  }
+  *type = RK_TCDB_NONE;
+  return 0;  
 }
 
 static int64_t rk_tcdb_add_int(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t num) {
