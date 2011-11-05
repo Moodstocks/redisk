@@ -6,7 +6,7 @@
 #include "tcdb.h"
 
 /** Private function prototypes */
-static int64_t rk_tcdb_addint(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t num);
+static int64_t rk_tcdb_add_int(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t num);
 char *rk_tcdb_hash_get(TCTDB *db, const char *kbuf, int ksiz,
                        const char *fbuf, int fsiz, int *sp);
 static int rk_tcdb_hash_put(TCTDB *db, const char *kbuf, int ksiz,
@@ -136,25 +136,25 @@ int64_t rk_tcdb_incr(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   if (!db->open) return INT_MIN;
   /* TODO: see above NOTES */
   /* return tchdbaddint(db->str, kbuf, ksiz, 1); */
-  return rk_tcdb_addint(db, kbuf, ksiz, 1LL);
+  return rk_tcdb_add_int(db, kbuf, ksiz, 1);
 }
 
 int64_t rk_tcdb_decr(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   assert(db && kbuf && ksiz >= 0);
   if (!db->open) return INT_MIN;
-  return rk_tcdb_addint(db, kbuf, ksiz, -1LL);
+  return rk_tcdb_add_int(db, kbuf, ksiz, -1);
 }
 
 int64_t rk_tcdb_incrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t inc) {
   assert(db && kbuf && ksiz >= 0);
   if (!db->open) return INT_MIN;
-  return rk_tcdb_addint(db, kbuf, ksiz, inc);
+  return rk_tcdb_add_int(db, kbuf, ksiz, inc);
 }
 
 int64_t rk_tcdb_decrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int dec) {
   assert(db && kbuf && ksiz >= 0);
   if (!db->open) return INT_MIN;
-  return rk_tcdb_addint(db, kbuf, ksiz, -dec);
+  return rk_tcdb_add_int(db, kbuf, ksiz, -dec);
 }
 
 char *rk_tcdb_hget(rk_tcdb_t *db, const char *kbuf, int ksiz,
@@ -225,7 +225,7 @@ int rk_tcdb_sismember(rk_tcdb_t *db, const char *kbuf, int ksiz,
   return rk_tcdb_hash_search(db->set, kbuf, ksiz, mbuf, msiz);
 }
 
-static int64_t rk_tcdb_addint(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t num) {
+static int64_t rk_tcdb_add_int(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t num) {
   assert(db && kbuf && ksiz >= 0);
   bool err = false;
   int64_t rv;
@@ -242,7 +242,7 @@ static int64_t rk_tcdb_addint(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t
     else err = true;
   }
   if (!err) {
-    siz = sprintf(buf, "%lld", rv);
+    siz = sprintf(buf, "%lld", (long long) rv);
     if (!tchdbput(db->str, kbuf, ksiz, buf, siz)) err = true;
   }
   return (err ? INT_MIN : rv);
