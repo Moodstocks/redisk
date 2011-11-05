@@ -38,7 +38,7 @@ rk_tcdb_t *rk_tcdb_new(void) {
   return db;
 }
 
-void rk_tcdb_del(rk_tcdb_t *db) {
+void rk_tcdb_free(rk_tcdb_t *db) {
   assert(db);
   if (db->open) rk_tcdb_close(db);
   free(db);  

@@ -13,7 +13,7 @@ typedef struct rk_tcdb_t_ {
 
 rk_tcdb_t *rk_tcdb_new(void);
 
-void rk_tcdb_del(rk_tcdb_t *db);
+void rk_tcdb_free(rk_tcdb_t *db);
 
 bool rk_tcdb_open(rk_tcdb_t *db, const char *path);
 
