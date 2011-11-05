@@ -33,4 +33,4 @@ clean:
 	rm -f redis-cli-test
 
 all-clean: clean
-	rm -f deps/libuv/uv.a
+	$(MAKE) -C deps/libuv clean
