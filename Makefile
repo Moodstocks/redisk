@@ -12,6 +12,12 @@ all: redisk parser-test redis-cli-test
 
 deps/libuv/uv.a:
 	$(MAKE) -C deps/libuv
+	
+deps/tokyocabinet-1.4.47/libtokyocabinet.a:
+	@/bin/bash -c "pushd deps/tokyocabinet-1.4.47;\
+	./configure --disable-shared;\
+	popd;"
+	$(MAKE) -C deps/tokyocabinet-1.4.47
 
 parser.c: parser.rl
 	$(RAGEL) parser.rl
@@ -38,3 +44,4 @@ clean:
 
 all-clean: clean
 	$(MAKE) -C deps/libuv clean
+	$(MAKE) -C deps/tokyocabinet-1.4.47 clean
