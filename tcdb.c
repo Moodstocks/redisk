@@ -149,6 +149,21 @@ int rk_tcdb_exists(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   return rk_tcdb_obj_search(db, kbuf, ksiz, &type);
 }
 
+char *rk_tcdb_type(rk_tcdb_t *db, const char *kbuf, int ksiz) {
+  assert(db && kbuf && ksiz >= 0);
+  if (!db->open) return NULL;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
+  switch (type) {
+    case RK_TCDB_STRING: return tcsprintf("%s", "string");
+    case RK_TCDB_LIST: return tcsprintf("%s", "list");
+    case RK_TCDB_SET: return tcsprintf("%s", "set");
+    case RK_TCDB_ZSET: return tcsprintf("%s", "zset");
+    case RK_TCDB_HASH: return tcsprintf("%s", "hash");
+  }
+  return NULL;
+}
+
 char *rk_tcdb_get(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp) {
   assert(db && kbuf && ksiz >= 0 && sp);
   if (!db->open) return NULL;

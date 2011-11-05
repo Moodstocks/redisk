@@ -34,6 +34,9 @@ int rk_tcdb_del(rk_tcdb_t *db, const char *kbuf, int ksiz);
 /** EXISTS key */
 int rk_tcdb_exists(rk_tcdb_t *db, const char *kbuf, int ksiz);
 
+/** TYPE key */
+char *rk_tcdb_type(rk_tcdb_t *db, const char *kbuf, int ksiz);
+
 /*************************************************
  * STRINGS COMMANDS
  *************************************************/
