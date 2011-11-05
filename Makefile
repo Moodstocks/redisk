@@ -15,7 +15,8 @@ deps/libuv/uv.a:
 	
 deps/tokyocabinet-1.4.47/libtokyocabinet.a:
 	@/bin/bash -c "pushd deps/tokyocabinet-1.4.47;\
-	./configure --disable-shared;\
+	./configure --disable-shared --disable-zlib \
+	--disable-bzip --disable-exlzma --disable-exlzo;\
 	popd;"
 	$(MAKE) -C deps/tokyocabinet-1.4.47
 
@@ -33,7 +34,8 @@ parser-test: parser.o parser-test.c
 
 redisk: server.c parser.o tcdb.o deps/libuv/uv.a
 	$(CBUILD) -I. -Ideps/libuv/include $(LDFLAGS) \
-		-o redisk server.c parser.o deps/libuv/uv.a
+		-o redisk server.c parser.o tcdb.o deps/libuv/uv.a \
+		-Ideps/tokyocabinet-1.4.47 deps/tokyocabinet-1.4.47/libtokyocabinet.a
 
 redis-cli-test: redis-cli-test.c
 	$(CBUILD) -o redis-cli-test redis-cli-test.c
