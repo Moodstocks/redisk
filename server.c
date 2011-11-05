@@ -4,6 +4,8 @@
 #include <assert.h>
 #include "resolving.h"
 #include "parser.h"
+#include "skel.h"
+#include "tcdb.h"
 #include "deps/libuv/include/uv.h"
 
 #define OK_RESPONSE "+OK\r\n"
@@ -11,6 +13,8 @@
 static uv_loop_t *uv_loop;
 static uv_tcp_t server;
 static redis_parser_t rparser;
+static rk_skel_t *skel;
+rk_skel_init g_skel_init = rk_tcdb_skel_init;
 
 typedef struct {
   uv_tcp_t handle;
@@ -66,7 +70,7 @@ void on_read(uv_stream_t *tcp, ssize_t nread, uv_buf_t buf) {
 
     int rsiz;
     char *rbuf;
-    resolve(rparser.argnum, rparser.args, rparser.arg_sizes, &rsiz, &rbuf);
+    resolve(skel, rparser.argnum, rparser.args, rparser.arg_sizes, &rsiz, &rbuf);
 
     client->buf.base = rbuf;
     client->buf.len = rsiz;
@@ -104,6 +108,11 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   int port = atoi(argv[1]);
+
+  skel = malloc(sizeof(*skel));
+  g_skel_init(skel);
+  if (!skel->open(skel->opq, "foo.db"))
+    fprintf(stderr, "skel open error\n");
   uv_loop = uv_default_loop();
   uv_tcp_init(uv_loop, &server);
   struct sockaddr_in address = uv_ip4_addr("0.0.0.0", port);
@@ -111,6 +120,7 @@ int main(int argc, char *argv[]) {
   uv_listen((uv_stream_t *)&server, 128, on_connect);
   printf("listening on port %d\n",port);
   uv_run(uv_loop);
+  free(skel);
   return 0;
 }
 
