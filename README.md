@@ -11,7 +11,7 @@
 redisk is an embeddable, portable (hopefully), disk-persistent [Redis](http://redis.io/) compatible C library
 featuring:
 
-* a brand new [Redis protocol](http://redis.io/topics/protocol) written with the [Ragel](http://www.complang.org/ragel/) state machine compiler,
+* a brand new [Redis protocol](http://redis.io/topics/protocol) parser written with the [Ragel](http://www.complang.org/ragel/) state machine compiler,
 * a dedicated server layer written on-top of [libuv](https://github.com/joyent/libuv),
 * an extensible backend layer via a Redis API C-based skeleton,
 * [Tokyo Cabinet](http://fallabs.com/tokyocabinet/) as default backend.
@@ -78,7 +78,7 @@ This project has been created at [Hack Day Paris](http://hackdayparis.org/) - a 
 
 ## Contributions
 
-The project is still very young and has many room from improvements, e.g:
+The project is still very young and has many room for improvements, e.g:
 
 * write the missing Redis API methods and data structures (e.g [zsets](http://redis.io/commands#sorted_set)),
 * support Redis [multi-bulk reply](http://redis.io/topics/protocol#multi-bulk-reply),
