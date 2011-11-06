@@ -62,6 +62,10 @@ int64_t rk_tcdb_incrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t inc);
 /** DECRBY key decrement */
 int64_t rk_tcdb_decrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int dec);
 
+/** GETSET key value */
+char *rk_tcdb_getset(rk_tcdb_t *db, const char *kbuf, int ksiz,
+                     const char *vbuf, int vsiz, int *sp);
+
 /*************************************************
  * HASHES COMMANDS
  *************************************************/

@@ -240,6 +240,23 @@ int64_t rk_tcdb_decrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int dec) {
   return rk_tcdb_add_int(db, kbuf, ksiz, -dec);
 }
 
+char *rk_tcdb_getset(rk_tcdb_t *db, const char *kbuf, int ksiz,
+                     const char *vbuf, int vsiz, int *sp) {
+  assert(db && kbuf && ksiz >= 0 && vbuf && vsiz >= 0 && sp);
+  if (!db->open) return NULL;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
+  if (!RKTCDBOCHECK(type, RK_TCDB_STRING)) return NULL;
+  int siz;
+  char *buf = tchdbget(db->str, kbuf, ksiz, &siz);
+  if (!tchdbput(db->str, kbuf, ksiz, vbuf, vsiz)) {
+    if (buf) free(buf);
+    return NULL;
+  }
+  if (buf) *sp = siz;
+  return buf;
+}
+
 char *rk_tcdb_hget(rk_tcdb_t *db, const char *kbuf, int ksiz,
                    const char *fbuf, int fsiz, int *sp) {
   assert(db && kbuf && ksiz >= 0 && fbuf && fsiz >= 0 && sp);
