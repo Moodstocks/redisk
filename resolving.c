@@ -11,34 +11,30 @@ static struct rk_cmd_desc rtable[NB_COMMANDS] = { // TODO handle case
 
 int resolve(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
   int i,res;
-  char rstr[256];
   for (i=0; i<NB_COMMANDS; ++i) {
-    printf("command %d",i);
+    printf("command %d\n",i);
     if ( (strlen(rtable[i].name) == args[0]) &&
          !strncmp(argv[0], rtable[i].name, args[0]) ) {
       printf("-> resolved to %s.\n",rtable[i].name);
-      if ( rtable[i].arity == argc ) {
+      if ( rtable[i].arity == argc ) { /* valid command */
         res = rtable[i].fun(skel, argc, argv, args, rsiz, rbuf);
         return res;
       }
-      else {
+      else { /* bad arity */
         printf("-> bad arity (%d, %d)\n",rtable[i].arity,argc);
-        snprintf(rstr, args[0], "-ERR wrong number of arguments for '%s' command\r\n", argv[0]);
-        *rsiz = strlen(rstr)+1;
+        *rsiz = strlen("-ERR wrong number of arguments for '' command\r\n") + args[0] + 1;
         *rbuf = malloc(*rsiz);
-        strncpy(*rbuf,rstr,*rsiz-1);
-        *rbuf[*rsiz] = '\0';
+        snprintf(*rbuf, *rsiz, "-ERR wrong number of arguments for '%.*s' command\r\n", (int)args[0], argv[0]);
         return -1;
       }
     }
   }
+
   /* if not found... */
-  printf("-> command not found");
-  snprintf(rstr, args[0], "-ERR unknown command '%s'\r\n", argv[0]); // TODO fix formating
-  *rsiz = strlen(rstr)+1;
+  printf("-> command not found\n");
+  *rsiz = strlen("-ERR unknown command ''\r\n") + args[0] + 1;
   *rbuf = malloc(*rsiz);
-  strncpy(*rbuf,rstr,*rsiz-1);
-  (*rbuf)[*rsiz] = '\0';
+  snprintf(*rbuf, *rsiz, "-ERR unknown command '%.*s'\r\n", (int)args[0], argv[0]);
   return -1;
 }
 
@@ -47,7 +43,7 @@ int rk_do_get(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, 
   char rstr[256];
   char *r = skel->get(skel->opq, argv[1], args[1], &rs);
   if (r == NULL) {
-    *rbuf = "$-1";
+    *rbuf = "$-1\r\n";
     *rsiz = strlen(*rbuf)+1;
   }
   else {
@@ -55,7 +51,6 @@ int rk_do_get(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, 
     *rsiz = strlen("$\r\n\r\n") + rstrlen + rs + 1;
     *rbuf = malloc(*rsiz);
     snprintf(*rbuf, *rsiz-1, "$%d\r\n%s\r\n", rs, r);
-    (*rbuf)[*rsiz] = '\0';
   }
   return 1;
 }
