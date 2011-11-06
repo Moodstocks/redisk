@@ -21,7 +21,7 @@ It should be interesting for you if you want to run/embedd Redis e.g on a device
 You can use it with or without the server-stack, i.e in an embedded fashion by
 taking benefit of the `rk_tcdb_t` C programmatic API.
 
-The backend layer has been inspired from another similar project called [lycadb](https://github.com/nicolasff/lycadb) by [yowgi](twitter.com/yowgi).
+The backend layer has been inspired from another similar project called [lycadb](https://github.com/nicolasff/lycadb) by [yowgi](http://twitter.com/yowgi).
 
 ## Install
 
