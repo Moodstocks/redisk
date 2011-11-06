@@ -10,9 +10,31 @@ typedef struct rk_skel_t_ {
   void (*free)(void *opq);
   bool (*open)(void *opq, const char *path);
   bool (*close)(void *opq);
-  /** Redis strings commands */
+  /** Keys commands */
+  int (*del)(void *opq, const char *kbuf, int ksiz);
+  int (*exists)(void *opq, const char *kbuf, int ksiz);
+  char *(*type)(void *opq, const char *kbuf, int ksiz);
+  /** Strings commands */
   char *(*get)(void *opq, const char *kbuf, int ksiz, int *sp);
   bool (*set)(void *opq, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
+  int (*setnx)(void *opq, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
+  int64_t (*incr)(void *opq, const char *kbuf, int ksiz);
+  int64_t (*decr)(void *opq, const char *kbuf, int ksiz);
+  int64_t (*incrby)(void *opq, const char *kbuf, int ksiz, int64_t inc);
+  int64_t (*decrby)(void *opq, const char *kbuf, int ksiz, int dec);
+  char *(*getset)(void *opq, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int *sp);
+  /** Hashes commands */
+  char *(*hget)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz, int *sp);
+  int (*hset)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz, const char *vbuf, int vsiz);
+  int (*hdel)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz);
+  int (*hsetnx)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz, const char *vbuf, int vsiz);
+  int (*hexists)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz);
+  int (*hlen)(void *opq, const char *kbuf, int ksiz);
+  /** Sets commands */
+  int (*sadd)(void *opq, const char *kbuf, int ksiz, const char *mbuf, int msiz);
+  int (*srem)(void *opq, const char *kbuf, int ksiz, const char *mbuf, int msiz);
+  int (*scard)(void *opq, const char *kbuf, int ksiz);
+  int (*sismember)(void *opq, const char *kbuf, int ksiz, const char *mbuf, int msiz);
 } rk_skel_t;
 
 typedef void (*rk_skel_init)(rk_skel_t *skel);
