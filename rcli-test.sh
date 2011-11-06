@@ -13,9 +13,35 @@ rcli SET a
 echo "=> set"
 rcli SET kfoo vbar
 
-echo "=> get existing"
+echo "=> get"
+rcli GET kfoo
+rcli GET kdoesnotexist
+
+echo "=> exists"
+rcli EXISTS kfoo
+rcli EXISTS kdoesnotexist
+
+echo "=> type"
+rcli TYPE kfoo
+rcli KTYPE kdoesnotexist
+
+echo "=> del"
+rcli DEL kfoo
 rcli GET kfoo
 
-echo "=> get empty"
-rcli GET kdoesnotexist
+echo "=> sadd"
+rcli SADD sfoo v1
+rcli SADD sfoo v2
+rcli SADD sfoo v3
+
+echo "=> sismember"
+rcli SISMEMBER sfoo v2
+rcli SISMEMBER sfoo vnone
+
+echo "=> srem"
+rcli SREM sfoo v2
+rcli SISMEMBER sfoo v2
+
+echo "=> scard"
+rcli SCARD sfoo
 
