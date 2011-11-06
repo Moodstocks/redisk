@@ -72,7 +72,7 @@ This project has been created at [Hack Day Paris](http://hackdayparis.org/) - a 
 
 The project is still very young and has many room from improvements, e.g:
 
-* write the missing Redis API methods and data structures (e.g zsets),
+* write the missing Redis API methods and data structures (e.g [zsets](http://redis.io/commands#sorted_set)),
 * support Redis [multi-bulk reply](http://redis.io/topics/protocol#multi-bulk-reply),
 * extend C API to support variadic commands,
 * introduce parameters to tune things up (e.g Tokyo bucket number, cache size, etc),
@@ -83,6 +83,7 @@ The project is still very young and has many room from improvements, e.g:
   * [Berkeley DB](http://www.oracle.com/technology/products/berkeley-db),
   * [leveldb](http://code.google.com/p/leveldb/),
   * etc
+* improve the build system,
 * etc
 
 If you enjoy it, feel free to fork and send your pull requests!
