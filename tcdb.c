@@ -180,7 +180,7 @@ char *rk_tcdb_type(rk_tcdb_t *db, const char *kbuf, int ksiz) {
     case RK_TCDB_ZSET: return tcsprintf("%s", "zset");
     case RK_TCDB_HASH: return tcsprintf("%s", "hash");
   }
-  return NULL;
+  return tcsprintf("%s", "none");
 }
 
 char *rk_tcdb_get(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp) {
