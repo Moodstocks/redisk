@@ -52,8 +52,27 @@ void rk_tcdb_skel_init(rk_skel_t *skel) {
   skel->free = (void (*)(void *))rk_tcdb_free;
   skel->open = (bool (*)(void *, const char *))rk_tcdb_open;
   skel->close = (bool (*)(void *))rk_tcdb_close;
+  skel->del = (int (*)(void *, const char *, int))rk_tcdb_del;
+  skel->exists = (int (*)(void *, const char *, int))rk_tcdb_exists;
+  skel->type = (char *(*)(void *, const char *, int))rk_tcdb_type;
   skel->get = (char *(*)(void *, const char *, int, int *))rk_tcdb_get;
   skel->set = (bool (*)(void *, const char *, int, const char *, int))rk_tcdb_set;
+  skel->setnx = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_setnx;
+  skel->incr = (int64_t (*)(void *, const char *, int))rk_tcdb_incr;
+  skel->decr = (int64_t (*)(void *, const char *, int))rk_tcdb_decr;
+  skel->incrby = (int64_t (*)(void *, const char *, int, int64_t))rk_tcdb_incrby;
+  skel->decrby = (int64_t (*)(void *, const char *, int, int))rk_tcdb_decrby;
+  skel->getset = (char *(*)(void *, const char *, int, const char *, int, int *))rk_tcdb_getset;
+  skel->hget = (char *(*)(void *, const char *, int, const char *, int, int *))rk_tcdb_hget;
+  skel->hset = (int (*)(void *, const char *, int, const char *, int, const char *, int))rk_tcdb_hset;
+  skel->hdel = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_hdel;
+  skel->hsetnx = (int (*)(void *, const char *, int, const char *, int, const char *, int))rk_tcdb_hsetnx;
+  skel->hexists = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_hexists;
+  skel->hlen = (int (*)(void *, const char *, int))rk_tcdb_hlen;
+  skel->sadd = (int (*)(void *, const char *, int ksiz, const char *, int))rk_tcdb_sadd;
+  skel->srem = (int (*)(void *, const char *, int ksiz, const char *, int))rk_tcdb_srem;
+  skel->scard = (int (*)(void *, const char *, int))rk_tcdb_scard;
+  skel->sismember = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_sismember;
 }
 
 rk_tcdb_t *rk_tcdb_new(void) {
