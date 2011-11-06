@@ -25,6 +25,19 @@ bool rk_tcdb_open(rk_tcdb_t *db, const char *path);
 bool rk_tcdb_close(rk_tcdb_t *db);
 
 /*************************************************
+ * KEYS COMMANDS
+ *************************************************/
+ 
+/** DEL key */
+int rk_tcdb_del(rk_tcdb_t *db, const char *kbuf, int ksiz);
+
+/** EXISTS key */
+int rk_tcdb_exists(rk_tcdb_t *db, const char *kbuf, int ksiz);
+
+/** TYPE key */
+char *rk_tcdb_type(rk_tcdb_t *db, const char *kbuf, int ksiz);
+
+/*************************************************
  * STRINGS COMMANDS
  *************************************************/
 
@@ -48,6 +61,10 @@ int64_t rk_tcdb_incrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t inc);
 
 /** DECRBY key decrement */
 int64_t rk_tcdb_decrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int dec);
+
+/** GETSET key value */
+char *rk_tcdb_getset(rk_tcdb_t *db, const char *kbuf, int ksiz,
+                     const char *vbuf, int vsiz, int *sp);
 
 /*************************************************
  * HASHES COMMANDS
