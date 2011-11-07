@@ -84,7 +84,7 @@ This project has been created at [Hack Day Paris](http://hackdayparis.org/) - a 
 
 The project is still very young and has many room for improvements, e.g:
 
-* write the missing Redis API methods and data structures (e.g [lists](http://redis.io/commands#list) and [zsets](http://redis.io/commands#sorted_set) - less important),
+* write the missing Redis API methods and data structures, i.e [lists](http://redis.io/commands#list) first and later on [zsets](http://redis.io/commands#sorted_set),
 * support Redis [multi-bulk reply](http://redis.io/topics/protocol#multi-bulk-reply),
 * extend C API to support variadic commands,
 * introduce parameters to tune things up (e.g Tokyo bucket number, cache size, etc),
