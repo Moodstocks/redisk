@@ -95,6 +95,7 @@ The project is still very young and has many room for improvements, e.g:
 * support Redis [multi-bulk reply](http://redis.io/topics/protocol#multi-bulk-reply),
 * extend C API to support variadic commands,
 * introduce parameters to tune things up (e.g Tokyo bucket number, cache size, etc),
+* packaging, i.e create a static library that wraps the backend layer to make it easy to embed,
 * write documentation,
 * write tests,
 * plug in another DBM backend, e.g:
