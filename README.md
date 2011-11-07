@@ -16,7 +16,11 @@ featuring:
 * an extensible backend layer via a Redis API C-based skeleton,
 * [Tokyo Cabinet](http://fallabs.com/tokyocabinet/) as default backend.
 
-It should be interesting for you if you want to run/embedd Redis e.g on a device with limited RAM.
+It should be interesting for you if you want to run/embedd Redis e.g:
+
+* on a mobile device with limited RAM,
+* on a development machine on which a production dataset may not fit in memory,
+* as a slave dedicated to disk-based replication.
 
 You can use it with or without the server-stack, i.e in an embedded fashion by
 taking benefit of the `rk_tcdb_t` C programmatic API.
@@ -80,7 +84,7 @@ This project has been created at [Hack Day Paris](http://hackdayparis.org/) - a 
 
 The project is still very young and has many room for improvements, e.g:
 
-* write the missing Redis API methods and data structures (e.g [zsets](http://redis.io/commands#sorted_set)),
+* write the missing Redis API methods and data structures (e.g [lists](http://redis.io/commands#list) and [zsets](http://redis.io/commands#sorted_set) - less important),
 * support Redis [multi-bulk reply](http://redis.io/topics/protocol#multi-bulk-reply),
 * extend C API to support variadic commands,
 * introduce parameters to tune things up (e.g Tokyo bucket number, cache size, etc),
