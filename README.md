@@ -6,6 +6,12 @@
     |_|  \___|\__,_|_|___/_|\_\
                            
 
+## Warning
+
+DO NOT USE IN PRODUCTION. I REPEAT: DO NOT USE IN PRODUCTION (OR FOR ANYTHING IMPORTANT).
+
+This is a hack developed for a hackathon. We intend to continue working on it and release it someday but currently the project is definitely not in a usable state, except for demo / test purpose.
+
 ## What it is?
 
 redisk is an embeddable, portable (hopefully), disk-persistent [Redis](http://redis.io/) compatible C library
@@ -85,6 +91,7 @@ This project has been created at [Hack Day Paris](http://hackdayparis.org/) - a 
 The project is still very young and has many room for improvements, e.g:
 
 * write the missing Redis API methods and data structures, i.e [lists](http://redis.io/commands#list) first and later on [zsets](http://redis.io/commands#sorted_set),
+* some commands are implemented in TCDB but the glue (in resolving.c) is missing,
 * support Redis [multi-bulk reply](http://redis.io/topics/protocol#multi-bulk-reply),
 * extend C API to support variadic commands,
 * introduce parameters to tune things up (e.g Tokyo bucket number, cache size, etc),
@@ -97,6 +104,11 @@ The project is still very young and has many room for improvements, e.g:
   * etc
 * improve the build system,
 * etc
+
+Known bugs:
+
+* cannot re-use an existing connection with redis-cli (reason currently unknown)
+* probably lots of memory leaks & issues to fix with Valgrind
 
 If you enjoy it, feel free to fork and send your pull requests!
 
