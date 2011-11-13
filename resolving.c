@@ -223,9 +223,7 @@ int rk_do_hexists(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rs
 }
 
 int rk_do_hlen(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
-  printf("xxx\n");
   int n = skel->hlen(skel->opq, argv[1], args[1]);
-  printf("xxy\n");
   if (n<0) fill_err(rsiz,rbuf);
   else fill_int(rsiz,rbuf,n);
   return 1;
