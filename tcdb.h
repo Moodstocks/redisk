@@ -62,7 +62,7 @@ int64_t rk_tcdb_decr(rk_tcdb_t *db, const char *kbuf, int ksiz);
 int64_t rk_tcdb_incrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t inc);
 
 /** DECRBY key decrement */
-int64_t rk_tcdb_decrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int dec);
+int64_t rk_tcdb_decrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t dec);
 
 /** GETSET key value */
 char *rk_tcdb_getset(rk_tcdb_t *db, const char *kbuf, int ksiz,

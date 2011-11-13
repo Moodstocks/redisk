@@ -61,7 +61,7 @@ void rk_tcdb_skel_init(rk_skel_t *skel) {
   skel->incr = (int64_t (*)(void *, const char *, int))rk_tcdb_incr;
   skel->decr = (int64_t (*)(void *, const char *, int))rk_tcdb_decr;
   skel->incrby = (int64_t (*)(void *, const char *, int, int64_t))rk_tcdb_incrby;
-  skel->decrby = (int64_t (*)(void *, const char *, int, int))rk_tcdb_decrby;
+  skel->decrby = (int64_t (*)(void *, const char *, int, int64_t))rk_tcdb_decrby;
   skel->getset = (char *(*)(void *, const char *, int, const char *, int, int *))rk_tcdb_getset;
   skel->hget = (char *(*)(void *, const char *, int, const char *, int, int *))rk_tcdb_hget;
   skel->hset = (int (*)(void *, const char *, int, const char *, int, const char *, int))rk_tcdb_hset;
@@ -275,7 +275,7 @@ int64_t rk_tcdb_incrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t inc) {
   return rk_tcdb_add_int(db, kbuf, ksiz, inc);
 }
 
-int64_t rk_tcdb_decrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int dec) {
+int64_t rk_tcdb_decrby(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t dec) {
   assert(db && kbuf && ksiz >= 0);
   if (!db->open) return INT_MIN;
   int type;

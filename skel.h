@@ -21,7 +21,7 @@ typedef struct rk_skel_t_ {
   int64_t (*incr)(void *opq, const char *kbuf, int ksiz);
   int64_t (*decr)(void *opq, const char *kbuf, int ksiz);
   int64_t (*incrby)(void *opq, const char *kbuf, int ksiz, int64_t inc);
-  int64_t (*decrby)(void *opq, const char *kbuf, int ksiz, int dec);
+  int64_t (*decrby)(void *opq, const char *kbuf, int ksiz, int64_t dec);
   char *(*getset)(void *opq, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int *sp);
   /** Hashes commands */
   char *(*hget)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz, int *sp);
