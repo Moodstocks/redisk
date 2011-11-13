@@ -11,7 +11,11 @@ echo "=> arity"
 rcli SET a
 
 echo "=> set"
-rcli SET kfoo vbar
+rcli SET kfoo vfoo
+
+echo "=> setnx"
+rcli SETNX kbar vbar
+rcli SETNX kfoo vuseless
 
 echo "=> get"
 rcli GET kfoo
@@ -21,9 +25,19 @@ echo "=> exists"
 rcli EXISTS kfoo
 rcli EXISTS kdoesnotexist
 
+echo "=> counters"
+rcli INCR cfoo
+rcli INCR cfoo
+rcli INCR cfoo
+rcli DECR cfoo
+
+echo "=> getset"
+rcli GETSET kfoo vfoo2
+rcli GETSET kfoo vfoo
+
 echo "=> type"
 rcli TYPE kfoo
-rcli KTYPE kdoesnotexist
+rcli TYPE kdoesnotexist
 
 echo "=> del"
 rcli DEL kfoo
@@ -44,4 +58,3 @@ rcli SISMEMBER sfoo v2
 
 echo "=> scard"
 rcli SCARD sfoo
-
