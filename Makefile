@@ -44,6 +44,18 @@ redisk: $(REDISK_DEPS)
 redis-cli-test: redis-cli-test.c
 	$(CBUILD) -o redis-cli-test redis-cli-test.c
 
+get-deps:
+	bash -c " \
+		mkdir deps ;\
+		pushd deps ;\
+			echo 5 ;\
+			curl -O http://fallabs.com/tokyocabinet/tokyocabinet-1.4.47.tar.gz ;\
+			tar xf tokyocabinet-1.4.47.tar.gz ;\
+			rm -f tokyocabinet-1.4.47.tar.gz ;\
+			git clone git://github.com/joyent/libuv.git ;\
+		popd ;\
+	"
+
 clean:
 	rm -f redisk
 	rm -f parser.o
