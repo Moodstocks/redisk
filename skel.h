@@ -35,6 +35,12 @@ typedef struct rk_skel_t_ {
   int (*srem)(void *opq, const char *kbuf, int ksiz, const char *mbuf, int msiz);
   int (*scard)(void *opq, const char *kbuf, int ksiz);
   int (*sismember)(void *opq, const char *kbuf, int ksiz, const char *mbuf, int msiz);
+  /** Lists commands */
+  int (*llen)(void *opq, const char *kbuf, int ksiz);
+  int (*lpush)(void *opq, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
+  int (*rpush)(void *opq, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
+  char *(*lpop)(void *opq, const char *kbuf, int ksiz, int *sp);
+  char *(*rpop)(void *opq, const char *kbuf, int ksiz, int *sp);
 } rk_skel_t;
 
 typedef void (*rk_skel_init)(rk_skel_t *skel);

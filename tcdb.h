@@ -3,6 +3,7 @@
 
 #include <tchdb.h>
 #include <tctdb.h>
+#include <tcbdb.h>
 
 #include "skel.h"
 
@@ -11,6 +12,7 @@ typedef struct rk_tcdb_t_ {
   TCHDB *str;               /* main database for strings commands */
   TCTDB *hsh;               /* database for hashes commands */
   TCTDB *set;               /* database for sets commands */
+  TCBDB *lst;               /* database for lists commands */
 } rk_tcdb_t;
 
 /** Skeleton initialization */
@@ -111,5 +113,24 @@ int rk_tcdb_scard(rk_tcdb_t *db, const char *kbuf, int ksiz);
 /** SISMEMBER key member */
 int rk_tcdb_sismember(rk_tcdb_t *db, const char *kbuf, int ksiz,
                       const char *mbuf, int msiz);
+
+/*************************************************
+ * LISTS COMMANDS
+ *************************************************/
+
+/** LLEN key */
+int rk_tcdb_llen(rk_tcdb_t *db, const char *kbuf, int ksiz);
+
+/** LPUSH key value */
+int rk_tcdb_lpush(rk_tcdb_t *db, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
+
+/** RPUSH key value */
+int rk_tcdb_rpush(rk_tcdb_t *db, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
+
+/** LPOP key */
+char *rk_tcdb_lpop(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp);
+
+/** RPOP key */
+char *rk_tcdb_rpop(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp);
 
 #endif

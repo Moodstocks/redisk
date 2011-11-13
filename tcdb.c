@@ -73,6 +73,11 @@ void rk_tcdb_skel_init(rk_skel_t *skel) {
   skel->srem = (int (*)(void *, const char *, int ksiz, const char *, int))rk_tcdb_srem;
   skel->scard = (int (*)(void *, const char *, int))rk_tcdb_scard;
   skel->sismember = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_sismember;
+  skel->llen = (int (*)(void *, const char *, int))rk_tcdb_llen;
+  skel->lpush = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_lpush;
+  skel->rpush = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_rpush;
+  skel->lpop = (char *(*)(void *, const char *, int, int *))rk_tcdb_lpop;
+  skel->rpop = (char *(*)(void *, const char *, int, int *))rk_tcdb_rpop;
 }
 
 rk_tcdb_t *rk_tcdb_new(void) {
@@ -81,6 +86,7 @@ rk_tcdb_t *rk_tcdb_new(void) {
   db->str = NULL;
   db->hsh = NULL;
   db->set = NULL;
+  db->lst = NULL;
   return db;
 }
 
@@ -92,38 +98,50 @@ void rk_tcdb_free(rk_tcdb_t *db) {
 
 bool rk_tcdb_open(rk_tcdb_t *db, const char *path) {
   assert(db && path);
-  int omode = HDBOWRITER | HDBOCREAT | HDBOLCKNB;
-  TCHDB *str = tchdbnew();
-  if (!tchdbopen(str, path, omode)) {
-    tchdbdel(str);
-    return false;
+  bool err = false;
+  int omode;
+  TCHDB *str = NULL;
+  TCTDB *hsh = NULL;
+  TCTDB *set = NULL;
+  TCBDB *lst = NULL;
+  omode = HDBOWRITER | HDBOCREAT | HDBOLCKNB;
+  str = tchdbnew();
+  if (!tchdbopen(str, path, omode)) err = true;
+  if (!err) {
+    char *hpath = tcsprintf("%s.hash", path);
+    omode = TDBOWRITER | TDBOCREAT | TDBOLCKNB;
+    hsh = tctdbnew();
+    if (!tctdbopen(hsh, hpath, omode)) err = true;
+    free(hpath);
   }
-  char *hpath = tcsprintf("%s.hash", path);
-  omode = TDBOWRITER | TDBOCREAT | TDBOLCKNB;
-  TCTDB *hsh = tctdbnew();
-  if (!tctdbopen(hsh, hpath, omode)) {
-      tchdbdel(str);
-      tctdbdel(hsh);
-      free(hpath);
-      return false;
+  if (!err) {
+    char *spath = tcsprintf("%s.set", path);
+    omode = TDBOWRITER | TDBOCREAT | TDBOLCKNB;
+    set = tctdbnew();
+    if (!tctdbopen(set, spath, omode)) err = true;
+    free(spath);
   }
-  char *spath = tcsprintf("%s.set", path);
-  TCTDB *set = tctdbnew();
-  if (!tctdbopen(set, spath, omode)) {
-      tchdbdel(str);
-      tctdbdel(hsh);
-      tctdbdel(set);
-      free(hpath);
-      free(spath);
-      return false;
+  if (!err) {
+    char *lpath = tcsprintf("%s.list", path);
+    omode = BDBOWRITER | BDBOCREAT | BDBOLCKNB;
+    lst = tcbdbnew();
+    if (!tcbdbopen(lst, lpath, omode)) err = true;
+    free(lpath);
   }
-  db->str = str;
-  db->hsh = hsh;
-  db->set = set;
-  db->open = true;
-  free(hpath);
-  free(spath);
-  return true;
+  if (!err) {
+    db->str = str;
+    db->hsh = hsh;
+    db->set = set;
+    db->lst = lst;
+    db->open = true;
+  }
+  else {
+    if (str) tchdbdel(str);
+    if (hsh) tctdbdel(hsh);
+    if (set) tctdbdel(set);
+    if (lst) tcbdbdel(lst); 
+  }
+  return !err;
 }
 
 bool rk_tcdb_close(rk_tcdb_t *db) {
@@ -136,9 +154,12 @@ bool rk_tcdb_close(rk_tcdb_t *db) {
   tctdbdel(db->hsh);
   if (!tctdbclose(db->set)) err = true;
   tctdbdel(db->set);
+  if (!tcbdbclose(db->lst)) err = true;
+  tcbdbdel(db->lst);
   db->str = NULL;
   db->hsh = NULL;
   db->set = NULL;
+  db->lst = NULL;
   db->open = false;
   return !err;
 }
@@ -156,6 +177,10 @@ int rk_tcdb_del(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   else return 1;
   if (!tctdbout(db->set, kbuf, ksiz)) {
     if (tctdbecode(db->set) != TCENOREC) return -1;
+  }
+  else return 1;
+  if (!tcbdbout3(db->lst, kbuf, ksiz)) {
+    if (tcbdbecode(db->lst) != TCENOREC) return -1;
   }
   else return 1;
   return 0;
@@ -374,6 +399,85 @@ int rk_tcdb_sismember(rk_tcdb_t *db, const char *kbuf, int ksiz,
   return rk_tcdb_hash_exists(db->set, kbuf, ksiz, mbuf, msiz);
 }
 
+int rk_tcdb_llen(rk_tcdb_t *db, const char *kbuf, int ksiz) {
+  assert(db && kbuf && ksiz >= 0);
+  if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_LIST)) return -1;
+  return tcbdbvnum(db->lst, kbuf, ksiz);
+}
+
+int rk_tcdb_lpush(rk_tcdb_t *db, const char *kbuf, int ksiz, const char *vbuf, int vsiz) {
+  assert(db && kbuf && ksiz >= 0);
+  if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_LIST)) return -1;
+  if (!tcbdbputdupback(db->lst, kbuf, ksiz, vbuf, vsiz)) return -1;
+  return tcbdbvnum(db->lst, kbuf, ksiz);
+}
+
+int rk_tcdb_rpush(rk_tcdb_t *db, const char *kbuf, int ksiz, const char *vbuf, int vsiz) {
+  assert(db && kbuf && ksiz >= 0);
+  if (!db->open) return -1;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
+  if (!RKTCDBOCHECK(type, RK_TCDB_LIST)) return -1;
+  if (!tcbdbputdup(db->lst, kbuf, ksiz, vbuf, vsiz)) return -1;
+  return tcbdbvnum(db->lst, kbuf, ksiz);
+}
+
+char *rk_tcdb_lpop(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp) {
+  assert(db && kbuf && ksiz >= 0);
+  if (!db->open) return NULL;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
+  if (!RKTCDBOCHECK(type, RK_TCDB_LIST)) return NULL;
+  int vsiz;
+  char *vbuf = NULL;
+  BDBCUR *cur = tcbdbcurnew(db->lst);
+  if (tcbdbcurjump(cur, kbuf, ksiz)) {
+    int siz;
+    const void *buf = tcbdbcurkey3(cur, &siz);
+    if (siz == ksiz && !memcmp(buf, kbuf, ksiz)) {
+      vbuf = tcbdbcurval(cur, &vsiz);
+      if (!tcbdbcurout(cur)) {
+        if (vbuf) free(vbuf);
+        vbuf = NULL;
+      }
+    }
+  }
+  tcbdbcurdel(cur);
+  if (vbuf != NULL) *sp = vsiz;
+  return vbuf;
+}
+
+char *rk_tcdb_rpop(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp) {
+  assert(db && kbuf && ksiz >= 0);
+  if (!db->open) return NULL;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
+  if (!RKTCDBOCHECK(type, RK_TCDB_LIST)) return NULL;
+  int vsiz;
+  char *vbuf = NULL;
+  BDBCUR *cur = tcbdbcurnew(db->lst);
+  if (tcbdbcurjumpback(cur, kbuf, ksiz)) {
+    int siz;
+    const void *buf = tcbdbcurkey3(cur, &siz);
+    if (siz == ksiz && !memcmp(buf, kbuf, ksiz)) {
+      vbuf = tcbdbcurval(cur, &vsiz);
+      if (!tcbdbcurout(cur)) {
+        if (vbuf) free(vbuf);
+        vbuf = NULL;
+      }
+    }
+  }
+  tcbdbcurdel(cur);
+  if (vbuf != NULL) *sp = vsiz;
+  return vbuf;
+}
+
 static int rk_tcdb_obj_search(rk_tcdb_t *db, const char *kbuf, int ksiz, int *type) {
   assert(db && kbuf && ksiz >= 0 && type);
   if (!tchdbiterinit2(db->str, kbuf, ksiz)) {
@@ -397,6 +501,17 @@ static int rk_tcdb_obj_search(rk_tcdb_t *db, const char *kbuf, int ksiz, int *ty
     *type = RK_TCDB_SET;
     return 1;
   }
+  BDBCUR *cur = tcbdbcurnew(db->lst);
+  if (tcbdbcurjump(cur, kbuf, ksiz)) {
+    int siz;
+    const void *buf = tcbdbcurkey3(cur, &siz);
+    if (siz == ksiz && !memcmp(buf, kbuf, ksiz)) {
+      tcbdbcurdel(cur);
+      *type = RK_TCDB_LIST;
+      return 1;
+    }
+  }
+  tcbdbcurdel(cur);
   *type = RK_TCDB_NONE;
   return 0;  
 }
