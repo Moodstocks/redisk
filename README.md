@@ -90,7 +90,6 @@ This project has been created at [Hack Day Paris](http://hackdayparis.org/) - a 
 
 The project is still very young and has many room for improvements, e.g:
 
-* some commands are implemented in `rk_tcdb_t` but the glue (in resolving.c) is missing,
 * write the missing Redis API commands (e.g. [LRANGE](http://redis.io/commands/lrange), [SINTER](http://redis.io/commands/sinter), etc),
 * support Redis [multi-bulk reply](http://redis.io/topics/protocol#multi-bulk-reply),
 * extend C API to support variadic commands,

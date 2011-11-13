@@ -2,7 +2,7 @@
 #include <string.h>
 #include "resolving.h"
 
-#define NB_COMMANDS 15
+#define NB_COMMANDS 26
 
 static struct rk_cmd_desc rtable[NB_COMMANDS] = { // TODO handle case
   /** Keys commands */
@@ -19,13 +19,31 @@ static struct rk_cmd_desc rtable[NB_COMMANDS] = { // TODO handle case
   {"DECRBY",rk_do_decrby,3},
   {"GETSET",rk_do_getset,3},
   /** Hashes commands */
+  {"HGET",rk_do_hget,3},
+  {"HSET",rk_do_hset,4},
+  {"HDEL",rk_do_hdel,3},
+  {"HSETNX",rk_do_hsetnx,4},
+  {"HEXISTS",rk_do_hexists,3},
+  {"HLEN",rk_do_hlen,2},
   /** Sets commands */
   {"SADD",rk_do_sadd,3},
   {"SREM",rk_do_srem,3},
   {"SCARD",rk_do_scard,2},
-  {"SISMEMBER",rk_do_sismember,3}
+  {"SISMEMBER",rk_do_sismember,3},
   /** Lists commands */
+  {"LLEN",rk_do_llen,2},
+  {"LPUSH",rk_do_lpush,3},
+  {"RPUSH",rk_do_rpush,3},
+  {"LPOP",rk_do_lpop,2},
+  {"RPOP",rk_do_rpop,2}
 };
+
+  char *(*hget)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz, int *sp);
+  int (*hset)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz, const char *vbuf, int vsiz);
+  int (*hdel)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz);
+  int (*hsetnx)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz, const char *vbuf, int vsiz);
+  int (*hexists)(void *opq, const char *kbuf, int ksiz, const char *fbuf, int fsiz);
+  int (*hlen)(void *opq, const char *kbuf, int ksiz);
 
 int resolve(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
   int i,res;
@@ -139,14 +157,20 @@ int rk_do_decr(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz,
 }
 
 int rk_do_incrby(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
-  int64_t i = 1; // TODO!!
+  char tstr[256];
+  strncpy(tstr, argv[2], args[2]);
+  tstr[args[2]] = '\0';
+  int64_t i = atol(tstr);
   int n = skel->incrby(skel->opq, argv[1], args[1], i);
   fill_int(rsiz,rbuf,n);
   return 1;
 }
 
 int rk_do_decrby(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
-  int64_t i = 1; // TODO!!
+  char tstr[256];
+  strncpy(tstr, argv[2], args[2]);
+  tstr[args[2]] = '\0';
+  int64_t i = atol(tstr);
   int n = skel->decrby(skel->opq, argv[1], args[1], i);
   fill_int(rsiz,rbuf,n);
   return 1;
@@ -161,6 +185,51 @@ int rk_do_getset(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsi
 }
 
 /** Hashes commands */
+
+int rk_do_hget(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  int rs;
+  char *r = skel->hget(skel->opq, argv[1], args[1], argv[2], args[2], &rs);
+  if (r == NULL) fill_err(rsiz,rbuf);
+  else fill_str(rsiz,rbuf,rs,r);
+  return 1;
+}
+
+int rk_do_hset(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  int n = skel->hset(skel->opq, argv[1], args[1], argv[2], args[2], argv[3], args[3]);
+  if (n<0) fill_err(rsiz,rbuf);
+  else fill_int(rsiz,rbuf,n);
+  return 1;
+}
+
+int rk_do_hdel(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  int n = skel->hdel(skel->opq, argv[1], args[1], argv[2], args[2]);
+  if (n<0) fill_err(rsiz,rbuf);
+  else fill_int(rsiz,rbuf,n);
+  return 1;
+}
+
+int rk_do_hsetnx(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  int n = skel->hsetnx(skel->opq, argv[1], args[1], argv[2], args[2], argv[3], args[3]);
+  if (n<0) fill_err(rsiz,rbuf);
+  else fill_int(rsiz,rbuf,n);
+  return 1;
+}
+
+int rk_do_hexists(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  int n = skel->hexists(skel->opq, argv[1], args[1], argv[2], args[2]);
+  if (n<0) fill_err(rsiz,rbuf);
+  else fill_int(rsiz,rbuf,n);
+  return 1;
+}
+
+int rk_do_hlen(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  printf("xxx\n");
+  int n = skel->hlen(skel->opq, argv[1], args[1]);
+  printf("xxy\n");
+  if (n<0) fill_err(rsiz,rbuf);
+  else fill_int(rsiz,rbuf,n);
+  return 1;
+}
 
 /** Sets commands */
 
@@ -193,3 +262,40 @@ int rk_do_sismember(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *
 }
 
 /** Lists commands */
+
+int rk_do_llen(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  int n = skel->llen(skel->opq, argv[1], args[1]);
+  if (n<0) fill_err(rsiz,rbuf);
+  else fill_int(rsiz,rbuf,n);
+  return 1;
+}
+
+int rk_do_lpush(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  int n = skel->lpush(skel->opq, argv[1], args[1], argv[2], args[2]);
+  if (n<0) fill_err(rsiz,rbuf);
+  else fill_int(rsiz,rbuf,n);
+  return 1;
+}
+
+int rk_do_rpush(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  int n = skel->rpush(skel->opq, argv[1], args[1], argv[2], args[2]);
+  if (n<0) fill_err(rsiz,rbuf);
+  else fill_int(rsiz,rbuf,n);
+  return 1;
+}
+
+int rk_do_lpop(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  int rs;
+  char *r = skel->lpop(skel->opq, argv[1], args[1], &rs);
+  if (r == NULL) fill_err(rsiz,rbuf);
+  else fill_str(rsiz,rbuf,rs,r);
+  return 1;
+}
+
+int rk_do_rpop(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
+  int rs;
+  char *r = skel->rpop(skel->opq, argv[1], args[1], &rs);
+  if (r == NULL) fill_err(rsiz,rbuf);
+  else fill_str(rsiz,rbuf,rs,r);
+  return 1;
+}

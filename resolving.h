@@ -25,6 +25,12 @@ int rk_do_decrby(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsi
 int rk_do_getset(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
 
 /** Hashes commands */
+int rk_do_hget(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
+int rk_do_hset(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
+int rk_do_hdel(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
+int rk_do_hsetnx(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
+int rk_do_hexists(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
+int rk_do_hlen(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
 
 /** Sets commands */
 int rk_do_sadd(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
@@ -33,3 +39,8 @@ int rk_do_scard(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz
 int rk_do_sismember(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
 
 /** Lists commands */
+int rk_do_llen(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
+int rk_do_lpush(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
+int rk_do_rpush(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
+int rk_do_lpop(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
+int rk_do_rpop(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf);
