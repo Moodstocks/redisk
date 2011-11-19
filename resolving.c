@@ -2,9 +2,9 @@
 #include <string.h>
 #include "resolving.h"
 
-#define NB_COMMANDS 26
+#define ARY_SIZE(x) (sizeof(x)/sizeof(x[0]))
 
-static struct rk_cmd_desc rtable[NB_COMMANDS] = { // TODO handle case
+static struct rk_cmd_desc rtable[] = { // TODO handle case
   /** Keys commands */
   {"DEL",rk_do_del,2},
   {"EXISTS",rk_do_exists,2},
@@ -35,12 +35,13 @@ static struct rk_cmd_desc rtable[NB_COMMANDS] = { // TODO handle case
   {"LPUSH",rk_do_lpush,3},
   {"RPUSH",rk_do_rpush,3},
   {"LPOP",rk_do_lpop,2},
-  {"RPOP",rk_do_rpop,2}
+  {"RPOP",rk_do_rpop,2},
+  {"LRANGE",rk_do_lrange,4}
 };
 
 int resolve(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf) {
   int i,res;
-  for (i=0; i<NB_COMMANDS; ++i) {
+  for (i=0; i<ARY_SIZE(rtable); ++i) {
     if ( (strlen(rtable[i].name) == args[0]) &&
          !strncmp(argv[0], rtable[i].name, args[0]) ) {
       printf("-> resolved to %s.\n",rtable[i].name);
@@ -93,10 +94,56 @@ void fill_str(int *rsiz, char **rbuf, int ksiz, char *kbuf) {
   *rsiz = strlen("$\r\n\r\n") + rstrlen + ksiz + 1;
   *rbuf = malloc(*rsiz);
   snprintf(*rbuf, *rsiz, "$%d\r\n%s\r\n", ksiz, kbuf);
+  free(kbuf);
 }
 
 #define FILL_NNUL_STR(rs,r) \
   if (r==NULL) fill_err(rsiz,rbuf); else fill_str(rsiz,rbuf,rs,r); return 1
+
+void fill_multi_val(int *rsiz, char **rbuf, rk_val_t *ary, int num) {
+  int i;
+  int tsiz = 0;
+  int nsiz;
+  char nstr[32];
+  nsiz = sprintf(nstr, "%d", num);
+  tsiz += 5 + nsiz;
+  char **bulks = malloc(num*sizeof(char *));
+  for (i = 0; i < num; i++) {
+    bulks[i] = malloc(32);
+    int siz = sprintf(bulks[i], "%d", ary[i].siz);
+    tsiz += 5 + siz + ary[i].siz;
+  }
+  *rsiz = tsiz;
+  *rbuf = malloc(*rsiz);
+  char *wp = *rbuf;
+  memcpy(wp, "*", 1);
+  wp += 1;
+  memcpy(wp, nstr, nsiz);
+  wp += nsiz;
+  memcpy(wp, "\r\n", 2);
+  wp += 2;
+  for (i = 0; i < num; i++) {
+    memcpy(wp, "$", 1);
+    wp += 1;
+    int siz = strlen(bulks[i]);
+    memcpy(wp, bulks[i], siz);
+    wp += siz;
+    memcpy(wp, "\r\n", 2);
+    wp += 2;
+    memcpy(wp, ary[i].buf, ary[i].siz);
+    wp += ary[i].siz;
+    memcpy(wp, "\r\n", 2);
+    wp += 2;
+    free(bulks[i]);
+    free(ary[i].buf);
+  }
+  memcpy(wp, "\r\n", 2);
+  free(bulks);
+  free(ary);
+}
+
+#define FILL_NNUL_MULTI_VAL(rn,r) \
+  if (r==NULL) fill_err(rsiz,rbuf); else fill_multi_val(rsiz,rbuf,r,rn); return 1
 
 /** Keys commands */
 
@@ -255,4 +302,18 @@ RK_DO_PROTO(rpop) {
   int rs;
   char *r = skel->rpop(skel->opq, argv[1], args[1], &rs);
   FILL_NNUL_STR(rs,r);
+}
+
+RK_DO_PROTO(lrange) {
+  char tstr[256];
+  int i;
+  int range[2];
+  for (i = 0; i < 2; i++) {
+    strncpy(tstr, argv[i+2], args[i+2]);
+    tstr[args[i+2]] = '\0';
+    range[i] = atoi(tstr);
+  }
+  int rn;
+  rk_val_t *r = skel->lrange(skel->opq, argv[1], args[1], range[0], range[1], &rn);
+  FILL_NNUL_MULTI_VAL(rn,r);
 }

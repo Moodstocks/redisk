@@ -47,3 +47,4 @@ RK_DO_PROTO(lpush);
 RK_DO_PROTO(rpush);
 RK_DO_PROTO(lpop);
 RK_DO_PROTO(rpop);
+RK_DO_PROTO(lrange);
