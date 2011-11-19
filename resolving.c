@@ -88,17 +88,27 @@ void fill_int(int *rsiz, char **rbuf, int n) {
 #define FILL_POS_INT(n) \
   if (n<0) fill_err(rsiz,rbuf); else fill_int(rsiz,rbuf,n); return 1
 
-void fill_str(int *rsiz, char **rbuf, int ksiz, char *kbuf) {
-  char rstr[256];
-  int rstrlen = snprintf(rstr, 255, "%d", ksiz);
-  *rsiz = strlen("$\r\n\r\n") + rstrlen + ksiz + 1;
+void fill_val(int *rsiz, char **rbuf, int ksiz, char *kbuf) {
+  char nstr[32];
+  int nsiz = sprintf(nstr, "%d", ksiz);
+  int tsiz = 5 + nsiz + ksiz;
+  *rsiz = tsiz;
   *rbuf = malloc(*rsiz);
-  snprintf(*rbuf, *rsiz, "$%d\r\n%s\r\n", ksiz, kbuf);
+  char *wp = *rbuf;
+  memcpy(wp, "$", 1);
+  wp += 1;
+  memcpy(wp, nstr, nsiz);
+  wp += nsiz;
+  memcpy(wp, "\r\n", 2);
+  wp += 2;
+  memcpy(wp, kbuf, ksiz);
+  wp += ksiz;
+  memcpy(wp, "\r\n", 2);
   free(kbuf);
 }
 
-#define FILL_NNUL_STR(rs,r) \
-  if (r==NULL) fill_err(rsiz,rbuf); else fill_str(rsiz,rbuf,rs,r); return 1
+#define FILL_NNUL_VAL(rs,r) \
+  if (r==NULL) fill_err(rsiz,rbuf); else fill_val(rsiz,rbuf,rs,r); return 1
 
 void fill_multi_val(int *rsiz, char **rbuf, rk_val_t *ary, int num) {
   int i;
@@ -159,7 +169,7 @@ RK_DO_PROTO(exists) {
 
 RK_DO_PROTO(type) {
   char *r = skel->type(skel->opq, argv[1], args[1]);
-  fill_str(rsiz,rbuf,strlen(r),r);
+  fill_val(rsiz,rbuf,strlen(r),r);
   return 1;
 }
 
@@ -168,7 +178,7 @@ RK_DO_PROTO(type) {
 RK_DO_PROTO(get) {
   int rs;
   char *r = skel->get(skel->opq, argv[1], args[1], &rs);
-  FILL_NNUL_STR(rs,r);
+  FILL_NNUL_VAL(rs,r);
 }
 
 RK_DO_PROTO(set) {
@@ -217,7 +227,7 @@ RK_DO_PROTO(decrby) {
 RK_DO_PROTO(getset) {
   int rs;
   char *r = skel->getset(skel->opq, argv[1], args[1], argv[2], args[2], &rs);
-  FILL_NNUL_STR(rs,r);
+  FILL_NNUL_VAL(rs,r);
 }
 
 /** Hashes commands */
@@ -225,7 +235,7 @@ RK_DO_PROTO(getset) {
 RK_DO_PROTO(hget) {
   int rs;
   char *r = skel->hget(skel->opq, argv[1], args[1], argv[2], args[2], &rs);
-  FILL_NNUL_STR(rs,r);
+  FILL_NNUL_VAL(rs,r);
 }
 
 RK_DO_PROTO(hset) {
@@ -295,13 +305,13 @@ RK_DO_PROTO(rpush) {
 RK_DO_PROTO(lpop) {
   int rs;
   char *r = skel->lpop(skel->opq, argv[1], args[1], &rs);
-  FILL_NNUL_STR(rs,r);
+  FILL_NNUL_VAL(rs,r);
 }
 
 RK_DO_PROTO(rpop) {
   int rs;
   char *r = skel->rpop(skel->opq, argv[1], args[1], &rs);
-  FILL_NNUL_STR(rs,r);
+  FILL_NNUL_VAL(rs,r);
 }
 
 RK_DO_PROTO(lrange) {
