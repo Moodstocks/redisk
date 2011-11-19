@@ -78,6 +78,7 @@ void rk_tcdb_skel_init(rk_skel_t *skel) {
   skel->rpush = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_rpush;
   skel->lpop = (char *(*)(void *, const char *, int, int *))rk_tcdb_lpop;
   skel->rpop = (char *(*)(void *, const char *, int, int *))rk_tcdb_rpop;
+  skel->lrange = (rk_val_t *(*)(void *, const char *, int, int, int, int *))rk_tcdb_lrange;
 }
 
 rk_tcdb_t *rk_tcdb_new(void) {
@@ -476,6 +477,35 @@ char *rk_tcdb_rpop(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp) {
   tcbdbcurdel(cur);
   if (vbuf != NULL) *sp = vsiz;
   return vbuf;
+}
+
+rk_val_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
+                         int start, int stop, int *num) {
+  assert(db && kbuf && ksiz >= 0 && num);
+  if (!db->open) return NULL;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
+  if (!RKTCDBOCHECK(type, RK_TCDB_LIST)) return NULL;
+  rk_val_t *ary = NULL;
+  TCLIST *vals = tcbdbget4(db->lst, kbuf, ksiz);
+  int llen = (vals != NULL) ? tclistnum(vals) : 0;
+  if (llen > 0) {
+    if ((start < llen) && (start <= stop)) {
+      int low = start < 0 ? (tclmax(start, -llen) + llen) : start;
+      int high = stop < 0 ? (tclmax(stop, -llen) + llen) : tclmin(stop, llen-1);
+      int siz = high - low + 1;
+      ary = malloc(siz*sizeof(rk_val_t));
+      int i;
+      for (i = 0; i < siz; i++) {
+        int vsiz;
+        const char *vbuf = tclistval(vals, i + low, &vsiz);
+        ary[i].buf = tcmemdup(vbuf, vsiz);
+        ary[i].siz = vsiz;
+      }
+      *num = siz;
+    }
+  }
+  return ary;
 }
 
 static int rk_tcdb_obj_search(rk_tcdb_t *db, const char *kbuf, int ksiz, int *type) {

@@ -133,4 +133,8 @@ char *rk_tcdb_lpop(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp);
 /** RPOP key */
 char *rk_tcdb_rpop(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp);
 
+/** LRANGE key start stop */
+rk_val_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
+                         int start, int stop, int *num);
+
 #endif

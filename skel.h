@@ -5,6 +5,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/** Type of a value in a multi-bulk reply */
+typedef struct rk_val_t_ {
+  char *buf;
+  int siz;
+} rk_val_t;
+
+/** Skeleton for Redis compatible C API */
 typedef struct rk_skel_t_ {
   void *opq;
   void (*free)(void *opq);
@@ -41,8 +48,10 @@ typedef struct rk_skel_t_ {
   int (*rpush)(void *opq, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
   char *(*lpop)(void *opq, const char *kbuf, int ksiz, int *sp);
   char *(*rpop)(void *opq, const char *kbuf, int ksiz, int *sp);
+  rk_val_t *(*lrange)(void *opq, const char *kbuf, int ksiz, int start, int stop, int *num);
 } rk_skel_t;
 
+/** Prototype of a Redis skeleton initializer */
 typedef void (*rk_skel_init)(rk_skel_t *skel);
 
 #endif
