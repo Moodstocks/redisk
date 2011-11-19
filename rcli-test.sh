@@ -130,3 +130,12 @@ rcli RPOP lfoo
 rcli RPOP lfoo
 rcli RPOP lfoo
 rcli RPOP lfoo
+
+echo "=> lrange"
+rcli RPUSH mylist one
+rcli RPUSH mylist two
+rcli RPUSH mylist three
+rcli LRANGE mylist 0 0
+rcli LRANGE mylist -3 2
+rcli LRANGE mylist -100 100
+rcli LRANGE mylist 5 10
