@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <signal.h>
 #include "resolving.h"
 #include "parser.h"
 #include "skel.h"
@@ -26,6 +27,9 @@ void on_close(uv_handle_t *handle);
 void after_write(uv_write_t *req, int status);
 void on_read(uv_stream_t *tcp, ssize_t nread, uv_buf_t buf);
 void on_connect(uv_stream_t* server_handle, int status);
+int on_exit(void);
+void register_sig_handler(int signal, void (*handler)(int));
+void signal_exit(int signal);
 
 void on_close(uv_handle_t *handle) {
   printf("connection closed\n");
@@ -102,12 +106,37 @@ void on_connect(uv_stream_t* server_handle, int status) {
   uv_read_start((uv_stream_t *)&client->handle, on_alloc, on_read);
 }
 
+int on_exit(void) {
+  int rv = 0;
+  if (skel != NULL) {
+    rv = skel->close(skel->opq) ? 0 : 1;
+    skel->free(skel->opq);
+    free(skel);
+    skel = NULL;
+  }
+  return rv;
+}
+
+void register_sig_handler(int signal, void (*handler)(int)) {
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_handler = handler;
+  sigfillset(&sa.sa_mask);
+  sigaction(signal, &sa, NULL);
+}
+
+void signal_exit(int signal) {
+  exit(on_exit());
+}
+
 int main(int argc, char *argv[]) {
   if (argc != 2) {
     fprintf(stderr, "USAGE: redisk PORT\n");
     exit(1);
   }
   int port = atoi(argv[1]);
+  register_sig_handler(SIGINT, signal_exit);
+  register_sig_handler(SIGTERM, signal_exit);
 
   skel = malloc(sizeof(*skel));
   g_skel_init(skel);
@@ -120,7 +149,6 @@ int main(int argc, char *argv[]) {
   uv_listen((uv_stream_t *)&server, 128, on_connect);
   printf("listening on port %d\n",port);
   uv_run(uv_loop);
-  free(skel);
   return 0;
 }
 
