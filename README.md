@@ -22,16 +22,23 @@ featuring:
 * an extensible backend layer via a Redis API C-based skeleton,
 * [Tokyo Cabinet](http://fallabs.com/tokyocabinet/) as default backend.
 
-It should be interesting for you if you want to run/embedd Redis e.g:
-
-* on a mobile device with limited RAM,
-* on a development machine on which a production dataset may not fit in memory,
-* as a slave dedicated to disk-based replication.
-
 You can use it with or without the server-stack, i.e in an embedded fashion by
 taking benefit of the `rk_tcdb_t` C programmatic API.
 
 The backend layer has been inspired from another similar project called [lycadb](https://github.com/nicolasff/lycadb) by [yowgi](http://twitter.com/yowgi).
+
+## Use cases
+
+It should be interesting for you if you want to run/embedd Redis e.g:
+
+* on a mobile device with limited RAM, e.g.:
+  * as an alternative embedded data store, to manipulate data the Redis way,
+  * to implement a general purpose on-disk URL cache,
+  * to implement a persistent store used to collect client-side logs, tasks, etc to be handled asynchronously,
+* on a development machine on which a production dataset may not fit in memory,
+* on a production machine:
+  * as a backend to collect a very large amount of logs (e.g. see [Fluent event collector](http://fluentd.org/doc/overview.html)),
+  * as a slave dedicated to disk-based replication.
 
 ## Install
 
@@ -60,10 +67,6 @@ You can then use the `redis-cli` command line client to interact with `redisk`, 
     OK
     $ redis-cli -p 1981 GET mykey
     "Hello"
-
-## Hack Day Paris
-
-This project has been created at [Hack Day Paris](http://hackdayparis.org/) - a Paris based 40-hour marathon of hyper-intensive design and development.
 
 ## C API Example Code
 
@@ -130,6 +133,10 @@ Known bugs:
 * probably lots of memory leaks & issues to fix with Valgrind
 
 If you enjoy it, feel free to fork and send your pull requests!
+
+## Hack Day Paris
+
+This project has been created at [Hack Day Paris](http://hackdayparis.org/) - a Paris based 40-hour marathon of hyper-intensive design and development.
 
 ## Authors
 
