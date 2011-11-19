@@ -35,13 +35,31 @@ The backend layer has been inspired from another similar project called [lycadb]
 
 ## Install
 
-You will need to install/clone dependencies first:
+First you need to install the [Ragel](http://www.complang.org/ragel/) compiler. If you are on OS X and use [homebrew](https://github.com/mxcl/homebrew) just type:
 
-* the [Ragel](http://www.complang.org/ragel/) compiler,
-* [libuv](https://github.com/joyent/libuv) (clone it into `deps/` folder),
-* [Tokyo Cabinet 1.4.47](http://fallabs.com/tokyocabinet/) (clone it into `deps/` folder too).
+    brew install ragel
+    
+Then clone/get the dependencies ([libuv](https://github.com/joyent/libuv) and [Tokyo Cabinet 1.4.47](http://fallabs.com/tokyocabinet/)) by typing:
 
-Then type `make`.
+    make get-deps
+    
+At last compile `redisk` by typing:
+
+    make
+    
+## Usage
+
+On a terminal, start the `redisk` server on the port of your choice (e.g. 1981) by typing:
+
+    ./redisk 1981
+    listening on port 1981
+    
+You can then use the `redis-cli` command line client to interact with `redisk`, e.g. within another terminal:
+
+    $ redis-cli -p 1981 SET mykey Hello
+    OK
+    $ redis-cli -p 1981 GET mykey
+    "Hello"
 
 ## Hack Day Paris
 
