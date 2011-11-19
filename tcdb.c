@@ -505,6 +505,7 @@ rk_val_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
       *num = siz;
     }
   }
+  if (vals) tclistdel(vals);
   return ary;
 }
 
