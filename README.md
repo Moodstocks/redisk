@@ -111,11 +111,9 @@ You can then use the `redis-cli` command line client to interact with `redisk`, 
 
 The project is still very young and has many room for improvements, e.g:
 
-* write the missing Redis API commands (e.g. [LRANGE](http://redis.io/commands/lrange), [SINTER](http://redis.io/commands/sinter), etc),
-* support Redis [multi-bulk reply](http://redis.io/topics/protocol#multi-bulk-reply),
-* extend C API to support variadic commands,
-* introduce parameters to tune things up (e.g Tokyo bucket number, cache size, etc),
-* packaging, i.e create a static library that wraps the backend layer to make it easy to embed,
+* write the missing Redis API commands (e.g. [LINDEX](http://redis.io/commands/lindex), [SINTER](http://redis.io/commands/sinter), etc),
+* extend C API to support variadic commands (e.g. [HMGET](http://redis.io/commands/hmget)),
+* introduce error codes to properly bubble up errors,
 * write documentation,
 * write tests,
 * plug in another DBM backend, e.g:
@@ -124,6 +122,8 @@ The project is still very young and has many room for improvements, e.g:
   * [leveldb](http://code.google.com/p/leveldb/),
   * etc
 * improve the build system,
+* packaging, i.e create a static library that wraps the backend layer to make it easy to embed,
+* introduce parameters to tune things up (e.g Tokyo bucket number, cache size, etc),
 * support [zsets](http://redis.io/commands#sorted_set) (low priority),
 * etc
 
