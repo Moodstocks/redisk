@@ -42,6 +42,7 @@ typedef struct rk_skel_t_ {
   int (*srem)(void *opq, const char *kbuf, int ksiz, const char *mbuf, int msiz);
   int (*scard)(void *opq, const char *kbuf, int ksiz);
   int (*sismember)(void *opq, const char *kbuf, int ksiz, const char *mbuf, int msiz);
+  rk_val_t *(*smembers)(void *opq, const char *kbuf, int ksiz, int *num);
   /** Lists commands */
   int (*llen)(void *opq, const char *kbuf, int ksiz);
   int (*lpush)(void *opq, const char *kbuf, int ksiz, const char *vbuf, int vsiz);

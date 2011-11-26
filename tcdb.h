@@ -114,6 +114,9 @@ int rk_tcdb_scard(rk_tcdb_t *db, const char *kbuf, int ksiz);
 int rk_tcdb_sismember(rk_tcdb_t *db, const char *kbuf, int ksiz,
                       const char *mbuf, int msiz);
 
+/** SMEMBERS key */
+rk_val_t *rk_tcdb_smembers(rk_tcdb_t *db, const char *kbuf, int ksiz, int *num);
+
 /*************************************************
  * LISTS COMMANDS
  *************************************************/

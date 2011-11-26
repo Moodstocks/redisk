@@ -40,6 +40,7 @@ RK_DO_PROTO(sadd);
 RK_DO_PROTO(srem);
 RK_DO_PROTO(scard);
 RK_DO_PROTO(sismember);
+RK_DO_PROTO(smembers);
 
 /** Lists commands */
 RK_DO_PROTO(llen);

@@ -33,6 +33,7 @@ static int rk_tcdb_hash_put_keep(TCTDB *db, const char *kbuf, int ksiz,
 static int rk_tcdb_hash_exists(TCTDB *db, const char *kbuf, int ksiz,
                                const char *fbuf, int fsiz);
 static int rk_tcdb_hash_rnum(TCTDB *db, const char *kbuf, int ksiz);
+static TCLIST *rk_tcdb_hash_keys(TCTDB *db, const char *kbuf, int ksiz);
 
 /** 
  * NOTES
@@ -69,10 +70,11 @@ void rk_tcdb_skel_init(rk_skel_t *skel) {
   skel->hsetnx = (int (*)(void *, const char *, int, const char *, int, const char *, int))rk_tcdb_hsetnx;
   skel->hexists = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_hexists;
   skel->hlen = (int (*)(void *, const char *, int))rk_tcdb_hlen;
-  skel->sadd = (int (*)(void *, const char *, int ksiz, const char *, int))rk_tcdb_sadd;
-  skel->srem = (int (*)(void *, const char *, int ksiz, const char *, int))rk_tcdb_srem;
+  skel->sadd = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_sadd;
+  skel->srem = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_srem;
   skel->scard = (int (*)(void *, const char *, int))rk_tcdb_scard;
   skel->sismember = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_sismember;
+  skel->smembers = (rk_val_t *(*)(void *, const char *, int, int *))rk_tcdb_smembers;
   skel->llen = (int (*)(void *, const char *, int))rk_tcdb_llen;
   skel->lpush = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_lpush;
   skel->rpush = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_rpush;
@@ -400,6 +402,32 @@ int rk_tcdb_sismember(rk_tcdb_t *db, const char *kbuf, int ksiz,
   return rk_tcdb_hash_exists(db->set, kbuf, ksiz, mbuf, msiz);
 }
 
+rk_val_t *rk_tcdb_smembers(rk_tcdb_t *db, const char *kbuf, int ksiz, int *num) {
+  assert(db && kbuf && ksiz >= 0 && num);
+  if (!db->open) return NULL;
+  int type;
+  if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
+  if (!RKTCDBOCHECK(type, RK_TCDB_SET)) return NULL;
+  rk_val_t *ary = NULL;
+  TCLIST *keys = rk_tcdb_hash_keys(db->set, kbuf, ksiz);
+  if (keys != NULL) {
+    int siz = tclistnum(keys);
+    if (siz > 0) {
+      ary = malloc(siz*sizeof(rk_val_t));
+      int i;
+      for (i = 0; i < siz; i++) {
+        int vsiz;
+        const char *vbuf = tclistval(keys, i, &vsiz);
+        ary[i].buf = tcmemdup(vbuf, vsiz);
+        ary[i].siz = vsiz;
+      }
+      *num = siz;
+    }
+    tclistdel(keys);
+  }
+  return ary;
+}
+
 int rk_tcdb_llen(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   assert(db && kbuf && ksiz >= 0);
   if (!db->open) return -1;
@@ -677,4 +705,18 @@ static int rk_tcdb_hash_rnum(TCTDB *db, const char *kbuf, int ksiz) {
   int rv = tcmaprnum(cols) - 1;
   if (cols) tcmapdel(cols);
   return rv;  
+}
+
+static TCLIST *rk_tcdb_hash_keys(TCTDB *db, const char *kbuf, int ksiz) {
+  assert(db && kbuf && ksiz >= 0);
+  TCMAP *cols = NULL;
+  if (!tctdbiterinit2(db, kbuf, ksiz)) return NULL;
+  else {
+    cols = tctdbiternext3(db);
+    tcmapout2(cols, "");
+  }
+  if (!cols) return NULL;
+  TCLIST *keys = tcmapkeys(cols);
+  tcmapdel(cols);
+  return keys;
 }

@@ -96,6 +96,15 @@ rcli SISMEMBER sfoo v2
 echo "=> scard"
 rcli SCARD sfoo
 
+echo "=> smembers"
+rcli SADD myset "Hello"
+rcli SADD myset "World"
+rcli SMEMBERS myset
+rcli SREM myset "Hello"
+rcli SMEMBERS myset
+rcli SREM myset "World"
+rcli SMEMBERS myset
+
 # Lists
 
 echo "=> lpush"

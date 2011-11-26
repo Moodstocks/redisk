@@ -30,6 +30,7 @@ static struct rk_cmd_desc rtable[] = { // TODO handle case
   {"SREM",rk_do_srem,3},
   {"SCARD",rk_do_scard,2},
   {"SISMEMBER",rk_do_sismember,3},
+  {"SMEMBERS",rk_do_smembers,2},
   /** Lists commands */
   {"LLEN",rk_do_llen,2},
   {"LPUSH",rk_do_lpush,3},
@@ -283,6 +284,12 @@ RK_DO_PROTO(scard) {
 RK_DO_PROTO(sismember) {
   int n = skel->sismember(skel->opq, argv[1], args[1], argv[2], args[2]);
   FILL_POS_INT(n);
+}
+
+RK_DO_PROTO(smembers) {
+  int rn;
+  rk_val_t *r = skel->smembers(skel->opq, argv[1], args[1], &rn);
+  FILL_NNUL_MULTI_VAL(rn,r);
 }
 
 /** Lists commands */
