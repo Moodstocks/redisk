@@ -489,10 +489,10 @@ rk_val_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
   rk_val_t *ary = NULL;
   TCLIST *vals = tcbdbget4(db->lst, kbuf, ksiz);
   int llen = (vals != NULL) ? tclistnum(vals) : 0;
-  if (llen > 0) {
-    if ((start < llen) && (start <= stop)) {
-      int low = start < 0 ? (tclmax(start, -llen) + llen) : start;
-      int high = stop < 0 ? (tclmax(stop, -llen) + llen) : tclmin(stop, llen-1);
+  if (llen > 0 && start < llen && stop >= -llen) {
+    int low = start < 0 ? tclmax(start, -llen) + llen : start;
+    int high = stop < 0 ? stop + llen : tclmin(stop, llen-1);
+    if (high >= low) {
       int siz = high - low + 1;
       ary = malloc(siz*sizeof(rk_val_t));
       int i;
@@ -502,7 +502,7 @@ rk_val_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
         ary[i].buf = tcmemdup(vbuf, vsiz);
         ary[i].siz = vsiz;
       }
-      *num = siz;
+      *num = siz;    
     }
   }
   if (vals) tclistdel(vals);

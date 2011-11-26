@@ -139,3 +139,11 @@ rcli LRANGE mylist 0 0
 rcli LRANGE mylist -3 2
 rcli LRANGE mylist -100 100
 rcli LRANGE mylist 5 10
+rcli LRANGE mylist 0 -1
+rcli LRANGE mylist 0 -2
+rcli LRANGE mylist 0 -3
+rcli LRANGE mylist 0 -4
+rcli LRANGE mylist 1 -2
+rcli LRANGE mylist 2 -1
+rcli LRANGE mylist 2 -2
+rcli LRANGE mylist 2 1
