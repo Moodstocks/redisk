@@ -502,7 +502,7 @@ rk_val_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
         ary[i].buf = tcmemdup(vbuf, vsiz);
         ary[i].siz = vsiz;
       }
-      *num = siz;    
+      *num = siz;
     }
   }
   if (vals) tclistdel(vals);
