@@ -52,9 +52,10 @@ int resolve(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, ch
       }
       else { /* bad arity */
         printf("-> bad arity (%d, %d)\n",rtable[i].arity,argc);
-        *rsiz = strlen("-ERR wrong number of arguments for '' command\r\n") + args[0] + 1;
+        char err[256];
+        *rsiz = snprintf(err, 256, "-ERR wrong number of arguments for '%.*s' command\r\n", (int)args[0], argv[0]);
         *rbuf = malloc(*rsiz);
-        snprintf(*rbuf, *rsiz, "-ERR wrong number of arguments for '%.*s' command\r\n", (int)args[0], argv[0]);
+        memcpy(*rbuf, err, *rsiz);
         return -1;
       }
     }
@@ -62,28 +63,37 @@ int resolve(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, ch
 
   /* if not found... */
   printf("-> command not found\n");
-  *rsiz = strlen("-ERR unknown command ''\r\n") + args[0] + 1;
+  char err[256];
+  *rsiz = snprintf(err, 256, "-ERR unknown command '%.*s'\r\n", (int)args[0], argv[0]);
   *rbuf = malloc(*rsiz);
-  snprintf(*rbuf, *rsiz, "-ERR unknown command '%.*s'\r\n", (int)args[0], argv[0]);
+  memcpy(*rbuf, err, *rsiz);  
   return -1;
 }
 
 void fill_err(int *rsiz, char **rbuf) {
-  *rbuf = "$-1\r\n";
-  *rsiz = strlen(*rbuf)+1;
+  *rsiz = 5;
+  *rbuf = malloc(*rsiz);
+  memcpy(*rbuf, "$-1\r\n", 5);
 }
 
 void fill_ok(int *rsiz, char **rbuf) {
-  *rbuf = "+OK\r\n";
-  *rsiz = strlen(*rbuf)+1;
+  *rsiz = 5;
+  *rbuf = malloc(*rsiz);
+  memcpy(*rbuf, "+OK\r\n", 5);
 }
 
 void fill_int(int *rsiz, char **rbuf, int n) {
-  char rstr[256];
-  int rstrlen = snprintf(rstr, 255, "%d", n);
-  *rsiz = strlen(":\r\n") + rstrlen + 1;
+  char nstr[32];
+  int nsiz = sprintf(nstr, "%d", n);
+  int tsiz = 3 + nsiz;
+  *rsiz = tsiz;
   *rbuf = malloc(*rsiz);
-  snprintf(*rbuf, *rsiz, ":%d\r\n", n);
+  char *wp = *rbuf;
+  memcpy(wp, ":", 1);
+  wp += 1;
+  memcpy(wp, nstr, nsiz);
+  wp += nsiz;
+  memcpy(wp, "\r\n", 2);
 }
 
 #define FILL_POS_INT(n) \
@@ -117,7 +127,7 @@ void fill_multi_val(int *rsiz, char **rbuf, rk_val_t *ary, int num) {
   int nsiz;
   char nstr[32];
   nsiz = sprintf(nstr, "%d", num);
-  tsiz += 5 + nsiz;
+  tsiz += 3 + nsiz;
   char **bulks = malloc(num*sizeof(char *));
   for (i = 0; i < num; i++) {
     bulks[i] = malloc(32);
@@ -148,7 +158,6 @@ void fill_multi_val(int *rsiz, char **rbuf, rk_val_t *ary, int num) {
     free(bulks[i]);
     free(ary[i].buf);
   }
-  memcpy(wp, "\r\n", 2);
   free(bulks);
   free(ary);
 }
