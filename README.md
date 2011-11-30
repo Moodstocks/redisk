@@ -129,7 +129,6 @@ The project is still very young and has many room for improvements, e.g:
 
 Known bugs:
 
-* cannot re-use an existing connection with redis-cli (reason currently unknown)
 * probably lots of memory leaks & issues to fix with Valgrind
 
 If you enjoy it, feel free to fork and send your pull requests!
