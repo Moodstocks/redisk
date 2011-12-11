@@ -74,13 +74,13 @@ void rk_tcdb_skel_init(rk_skel_t *skel) {
   skel->srem = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_srem;
   skel->scard = (int (*)(void *, const char *, int))rk_tcdb_scard;
   skel->sismember = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_sismember;
-  skel->smembers = (rk_val_t *(*)(void *, const char *, int, int *))rk_tcdb_smembers;
+  skel->smembers = (rk_listval_t *(*)(void *, const char *, int))rk_tcdb_smembers;
   skel->llen = (int (*)(void *, const char *, int))rk_tcdb_llen;
   skel->lpush = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_lpush;
   skel->rpush = (int (*)(void *, const char *, int, const char *, int))rk_tcdb_rpush;
   skel->lpop = (char *(*)(void *, const char *, int, int *))rk_tcdb_lpop;
   skel->rpop = (char *(*)(void *, const char *, int, int *))rk_tcdb_rpop;
-  skel->lrange = (rk_val_t *(*)(void *, const char *, int, int, int, int *))rk_tcdb_lrange;
+  skel->lrange = (rk_listval_t *(*)(void *, const char *, int, int, int))rk_tcdb_lrange;
 }
 
 rk_tcdb_t *rk_tcdb_new(void) {
@@ -402,14 +402,15 @@ int rk_tcdb_sismember(rk_tcdb_t *db, const char *kbuf, int ksiz,
   return rk_tcdb_hash_exists(db->set, kbuf, ksiz, mbuf, msiz);
 }
 
-rk_val_t *rk_tcdb_smembers(rk_tcdb_t *db, const char *kbuf, int ksiz, int *num) {
-  assert(db && kbuf && ksiz >= 0 && num);
+rk_listval_t *rk_tcdb_smembers(rk_tcdb_t *db, const char *kbuf, int ksiz) {
+  assert(db && kbuf && ksiz >= 0);
   if (!db->open) return NULL;
   int type;
   if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
   if (!RKTCDBOCHECK(type, RK_TCDB_SET)) return NULL;
   rk_val_t *ary = NULL;
   TCLIST *keys = rk_tcdb_hash_keys(db->set, kbuf, ksiz);
+  int num = 0;
   if (keys != NULL) {
     int siz = tclistnum(keys);
     if (siz > 0) {
@@ -421,11 +422,17 @@ rk_val_t *rk_tcdb_smembers(rk_tcdb_t *db, const char *kbuf, int ksiz, int *num) 
         ary[i].buf = tcmemdup(vbuf, vsiz);
         ary[i].siz = vsiz;
       }
-      *num = siz;
+      num = siz;
     }
     tclistdel(keys);
   }
-  return ary;
+  rk_listval_t *lval = NULL;
+  if (ary != NULL) {
+    lval = malloc(sizeof(*lval));
+    lval->ary = ary;
+    lval->num = num;
+  }
+  return lval;
 }
 
 int rk_tcdb_llen(rk_tcdb_t *db, const char *kbuf, int ksiz) {
@@ -507,14 +514,15 @@ char *rk_tcdb_rpop(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp) {
   return vbuf;
 }
 
-rk_val_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
-                         int start, int stop, int *num) {
-  assert(db && kbuf && ksiz >= 0 && num);
+rk_listval_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
+                             int start, int stop) {
+  assert(db && kbuf && ksiz >= 0);
   if (!db->open) return NULL;
   int type;
   if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
   if (!RKTCDBOCHECK(type, RK_TCDB_LIST)) return NULL;
   rk_val_t *ary = NULL;
+  int num = 0;
   TCLIST *vals = tcbdbget4(db->lst, kbuf, ksiz);
   int llen = (vals != NULL) ? tclistnum(vals) : 0;
   if (llen > 0 && start < llen && stop >= -llen) {
@@ -530,11 +538,17 @@ rk_val_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
         ary[i].buf = tcmemdup(vbuf, vsiz);
         ary[i].siz = vsiz;
       }
-      *num = siz;
+      num = siz;
     }
   }
   if (vals) tclistdel(vals);
-  return ary;
+  rk_listval_t *lval = NULL;
+  if (ary != NULL) {
+    lval = malloc(sizeof(*lval));
+    lval->ary = ary;
+    lval->num = num;
+  }
+  return lval;
 }
 
 static int rk_tcdb_obj_search(rk_tcdb_t *db, const char *kbuf, int ksiz, int *type) {

@@ -115,7 +115,7 @@ int rk_tcdb_sismember(rk_tcdb_t *db, const char *kbuf, int ksiz,
                       const char *mbuf, int msiz);
 
 /** SMEMBERS key */
-rk_val_t *rk_tcdb_smembers(rk_tcdb_t *db, const char *kbuf, int ksiz, int *num);
+rk_listval_t *rk_tcdb_smembers(rk_tcdb_t *db, const char *kbuf, int ksiz);
 
 /*************************************************
  * LISTS COMMANDS
@@ -137,7 +137,7 @@ char *rk_tcdb_lpop(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp);
 char *rk_tcdb_rpop(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp);
 
 /** LRANGE key start stop */
-rk_val_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
-                         int start, int stop, int *num);
+rk_listval_t *rk_tcdb_lrange(rk_tcdb_t *db, const char *kbuf, int ksiz,
+                             int start, int stop);
 
 #endif

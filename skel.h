@@ -11,6 +11,12 @@ typedef struct rk_val_t_ {
   int siz;
 } rk_val_t;
 
+/** Type of a multi-bulk reply */
+typedef struct rk_listval_t_ {
+  rk_val_t *ary;
+  int num;
+} rk_listval_t;
+
 /** Skeleton for Redis compatible C API */
 typedef struct rk_skel_t_ {
   void *opq;
@@ -42,14 +48,14 @@ typedef struct rk_skel_t_ {
   int (*srem)(void *opq, const char *kbuf, int ksiz, const char *mbuf, int msiz);
   int (*scard)(void *opq, const char *kbuf, int ksiz);
   int (*sismember)(void *opq, const char *kbuf, int ksiz, const char *mbuf, int msiz);
-  rk_val_t *(*smembers)(void *opq, const char *kbuf, int ksiz, int *num);
+  rk_listval_t *(*smembers)(void *opq, const char *kbuf, int ksiz);
   /** Lists commands */
   int (*llen)(void *opq, const char *kbuf, int ksiz);
   int (*lpush)(void *opq, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
   int (*rpush)(void *opq, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
   char *(*lpop)(void *opq, const char *kbuf, int ksiz, int *sp);
   char *(*rpop)(void *opq, const char *kbuf, int ksiz, int *sp);
-  rk_val_t *(*lrange)(void *opq, const char *kbuf, int ksiz, int start, int stop, int *num);
+  rk_listval_t *(*lrange)(void *opq, const char *kbuf, int ksiz, int start, int stop);
 } rk_skel_t;
 
 /** Prototype of a Redis skeleton initializer */

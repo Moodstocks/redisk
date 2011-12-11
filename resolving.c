@@ -121,7 +121,9 @@ void fill_val(int *rsiz, char **rbuf, int ksiz, char *kbuf) {
 #define FILL_NNUL_VAL(rs,r) \
   if (r==NULL) fill_err(rsiz,rbuf); else fill_val(rsiz,rbuf,rs,r); return 1
 
-void fill_multi_val(int *rsiz, char **rbuf, rk_val_t *ary, int num) {
+void fill_multi_val(int *rsiz, char **rbuf, rk_listval_t *r) {
+  rk_val_t *ary = r->ary;
+  int num = r->num;
   int i;
   int tsiz = 0;
   int nsiz;
@@ -160,10 +162,11 @@ void fill_multi_val(int *rsiz, char **rbuf, rk_val_t *ary, int num) {
   }
   free(bulks);
   free(ary);
+  free(r);
 }
 
-#define FILL_NNUL_MULTI_VAL(rn,r) \
-  if (r==NULL) fill_err(rsiz,rbuf); else fill_multi_val(rsiz,rbuf,r,rn); return 1
+#define FILL_NNUL_MULTI_VAL(r) \
+  if (r==NULL) fill_err(rsiz,rbuf); else fill_multi_val(rsiz,rbuf,r); return 1
 
 /** Keys commands */
 
@@ -296,9 +299,8 @@ RK_DO_PROTO(sismember) {
 }
 
 RK_DO_PROTO(smembers) {
-  int rn;
-  rk_val_t *r = skel->smembers(skel->opq, argv[1], args[1], &rn);
-  FILL_NNUL_MULTI_VAL(rn,r);
+  rk_listval_t *r = skel->smembers(skel->opq, argv[1], args[1]);
+  FILL_NNUL_MULTI_VAL(r);
 }
 
 /** Lists commands */
@@ -339,7 +341,6 @@ RK_DO_PROTO(lrange) {
     tstr[args[i+2]] = '\0';
     range[i] = atoi(tstr);
   }
-  int rn;
-  rk_val_t *r = skel->lrange(skel->opq, argv[1], args[1], range[0], range[1], &rn);
-  FILL_NNUL_MULTI_VAL(rn,r);
+  rk_listval_t *r = skel->lrange(skel->opq, argv[1], args[1], range[0], range[1]);
+  FILL_NNUL_MULTI_VAL(r);
 }
