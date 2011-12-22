@@ -20,7 +20,7 @@ deps/tokyocabinet-1.4.47/libtokyocabinet.a:
 	./configure --disable-shared --disable-zlib \
 	--disable-bzip --disable-exlzma --disable-exlzo;\
 	popd;"
-	$(MAKE) -C deps/tokyocabinet-1.4.47
+	$(MAKE) -C deps/tokyocabinet-1.4.47 libtokyocabinet.a
 
 parser.c: parser.rl
 	$(RAGEL) parser.rl
