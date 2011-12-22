@@ -53,6 +53,8 @@ Then clone/get the dependencies ([libuv](https://github.com/joyent/libuv) and [T
 At last compile `redisk` by typing:
 
     make
+
+> **TIP** for a recap type `make help`.
     
 ## Usage
 

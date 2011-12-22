@@ -68,3 +68,14 @@ clean:
 all-clean: clean
 	$(MAKE) -C deps/libuv clean
 	$(MAKE) -C deps/tokyocabinet-1.4.47 clean
+
+help:
+	@echo '[BOOTSTRAP]'
+	@echo '  get-deps                         fetch dependencies'
+	@echo
+	@echo '[BUILD]'
+	@echo '  redisk                           build the redisk server (cli)'
+	@echo
+	@echo '[CLEAN]'
+	@echo '  clean                            clean the cli tool and object files'
+	@echo '  all-clean                        clean the deps in addition'
