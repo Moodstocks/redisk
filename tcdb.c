@@ -596,7 +596,7 @@ static int64_t rk_tcdb_add_int(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_
   int vsiz;
   char buf[32];
   int siz;
-  const char *vbuf = tchdbget(db->str, kbuf, ksiz, &vsiz);
+  char *vbuf = tchdbget(db->str, kbuf, ksiz, &vsiz);
   if (vbuf == NULL) {
     if (tchdbecode(db->str) == TCENOREC) rv = num;
     else err = true;
@@ -604,6 +604,7 @@ static int64_t rk_tcdb_add_int(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_
   else {
     if (tcstrisnum(vbuf)) rv = tcatoi(vbuf) + num;
     else err = true;
+    free(vbuf);
   }
   if (!err) {
     siz = sprintf(buf, "%lld", (long long) rv);
