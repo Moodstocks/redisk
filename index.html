@@ -1,0 +1,197 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Redisk by Moodstocks</title>
+    
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Redisk</h1>
+        <p>Lightweight, embeddable, disk-persistent Redis-compatible library.</p>
+        <p class="view"><a href="https://github.com/Moodstocks/redisk">View the Project on GitHub <small>Moodstocks/redisk</small></a></p>
+        <ul>
+          <li><a href="https://github.com/Moodstocks/redisk/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/Moodstocks/redisk/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/Moodstocks/redisk">Fork On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h2>Warning</h2>
+
+<p>DO NOT USE IN PRODUCTION. I REPEAT: DO NOT USE IN PRODUCTION (OR FOR ANYTHING IMPORTANT).</p>
+
+<p>This is a hack developed for a hackathon. We intend to continue working on it and release it someday but currently the project is definitely not in a usable state, except for demo / test purpose.</p>
+
+<h2>What it is?</h2>
+
+<p>redisk is an embeddable, portable (hopefully), disk-persistent <a href="http://redis.io/">Redis</a> compatible C library
+featuring:</p>
+
+<ul>
+<li>a brand new <a href="http://redis.io/topics/protocol">Redis protocol</a> parser written with the <a href="http://www.complang.org/ragel/">Ragel</a> state machine compiler,</li>
+<li>a dedicated server layer written on-top of <a href="https://github.com/joyent/libuv">libuv</a>,</li>
+<li>an extensible backend layer via a Redis API C-based skeleton,</li>
+<li>
+<a href="http://fallabs.com/tokyocabinet/">Tokyo Cabinet</a> as default backend.</li>
+</ul><p>You can use it with or without the server-stack, i.e in an embedded fashion by
+taking benefit of the <code>rk_tcdb_t</code> C programmatic API.</p>
+
+<p>The backend layer has been inspired from another similar project called <a href="https://github.com/nicolasff/lycadb">lycadb</a> by <a href="http://twitter.com/yowgi">yowgi</a>.</p>
+
+<h2>Use cases</h2>
+
+<p>It should be interesting for you if you want to run/embedd Redis e.g:</p>
+
+<ul>
+<li>on a mobile device with limited RAM, e.g.:
+
+<ul>
+<li>as an alternative embedded data store, to manipulate data the Redis way,</li>
+<li>to implement a general purpose on-disk URL cache,</li>
+<li>to implement a persistent store used to collect client-side logs, tasks, etc to be handled asynchronously,</li>
+</ul>
+</li>
+<li>on a development machine on which a production dataset may not fit in memory,</li>
+<li>on a production machine:
+
+<ul>
+<li>as a backend to collect a very large amount of logs (e.g. see <a href="http://fluentd.org/doc/overview.html">Fluent event collector</a>),</li>
+<li>as a slave dedicated to disk-based replication.</li>
+</ul>
+</li>
+</ul><h2>Install</h2>
+
+<p>First you need to install the <a href="http://www.complang.org/ragel/">Ragel</a> compiler. If you are on OS X and use <a href="https://github.com/mxcl/homebrew">homebrew</a> just type:</p>
+
+<pre><code>brew install ragel
+</code></pre>
+
+<p>Then clone/get the dependencies (<a href="https://github.com/joyent/libuv">libuv</a> and <a href="http://fallabs.com/tokyocabinet/">Tokyo Cabinet 1.4.47</a>) by typing:</p>
+
+<pre><code>make get-deps
+</code></pre>
+
+<p>At last compile <code>redisk</code> by typing:</p>
+
+<pre><code>make
+</code></pre>
+
+<blockquote>
+<p><strong>TIP</strong> for a recap type <code>make help</code>.</p>
+</blockquote>
+
+<h2>Usage</h2>
+
+<p>On a terminal, start the <code>redisk</code> server on the port of your choice (e.g. 1981) by typing:</p>
+
+<pre><code>./redisk 1981
+listening on port 1981
+</code></pre>
+
+<p>You can then use the <code>redis-cli</code> command line client to interact with <code>redisk</code>, e.g. within another terminal:</p>
+
+<pre><code>$ redis-cli -p 1981 SET mykey Hello
+OK
+$ redis-cli -p 1981 GET mykey
+"Hello"
+</code></pre>
+
+<h2>C API Example Code</h2>
+
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;stdint.h&gt;
+
+#include "tcdb.h"
+
+int main(int argc, char **argv) {
+    rk_tcdb_t *db;
+    bool diag;
+    char *res;
+    int len;
+
+    /* Initialize the database */
+    db = rk_tcdb_new();
+    if (!rk_tcdb_open(db, "rk.db")) {
+        fprintf(stderr, "open error\n");
+    }
+
+    /* SET key value */
+    diag = rk_tcdb_set(db, "mykey", 5, "Hello", 5);
+    printf(" SET mykey \"Hello\" -&gt; %s\n", diag ? "OK" : "(error)");
+
+    /* GET key */
+    res = rk_tcdb_get(db, "mykey", 5, &amp;len);
+    printf(" GET mykey -&gt; %s\n", res ? res : "(nil)");
+
+    /* Cleanup */
+    if (!rk_tcdb_close(db)) {
+        fprintf(stderr, "close error\n");
+    }
+    rk_tcdb_free(db);
+    if (res) free(res);
+
+    return 0;
+}
+</code></pre>
+
+<h2>Contributing</h2>
+
+<p>The project is still very young and has many room for improvements, e.g:</p>
+
+<ul>
+<li>write the missing Redis API commands (e.g. <a href="http://redis.io/commands/lindex">LINDEX</a>, <a href="http://redis.io/commands/sinter">SINTER</a>, etc),</li>
+<li>extend C API to support variadic commands (e.g. <a href="http://redis.io/commands/hmget">HMGET</a>),</li>
+<li>introduce error codes to properly bubble up errors,</li>
+<li>write documentation,</li>
+<li>write tests,</li>
+<li>plug in another DBM backend, e.g:
+
+<ul>
+<li>
+<a href="http://www.sqlite.org/">sqlite</a>,</li>
+<li>
+<a href="http://www.oracle.com/technology/products/berkeley-db">Berkeley DB</a>,</li>
+<li>
+<a href="http://code.google.com/p/leveldb/">leveldb</a>,</li>
+<li>etc</li>
+</ul>
+</li>
+<li>improve the build system,</li>
+<li>packaging, i.e create a static library that wraps the backend layer to make it easy to embed,</li>
+<li>introduce parameters to tune things up (e.g Tokyo bucket number, cache size, etc),</li>
+<li>support <a href="http://redis.io/commands#sorted_set">zsets</a> (low priority),</li>
+<li>etc</li>
+</ul><p>Known bugs:</p>
+
+<ul>
+<li>probably lots of memory leaks &amp; issues to fix with Valgrind</li>
+</ul><p>If you enjoy it, feel free to fork and send your pull requests!</p>
+
+<h2>Hack Day Paris</h2>
+
+<p>This project has been created at <a href="http://hackdayparis.org/">Hack Day Paris</a> - a Paris based 40-hour marathon of hyper-intensive design and development.</p>
+
+<h2>Authors</h2>
+
+<p><a href="http://twitter.com/pchapuis">Pierre Chapuis</a> &amp; <a href="http://about.me/deltheil">Cédric Deltheil</a>.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/Moodstocks">Moodstocks</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
