@@ -49,7 +49,8 @@ get-deps:
 		mkdir deps ;\
 		pushd deps ;\
 			echo 5 ;\
-			curl -O http://fallabs.com/tokyocabinet/tokyocabinet-1.4.47.tar.gz ;\
+			curl -O --progress-bar\
+			http://fallabs.com/tokyocabinet/tokyocabinet-1.4.47.tar.gz ;\
 			tar xf tokyocabinet-1.4.47.tar.gz ;\
 			rm -f tokyocabinet-1.4.47.tar.gz ;\
 			git clone git://github.com/joyent/libuv.git ;\
