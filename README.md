@@ -137,7 +137,7 @@ If you enjoy it, feel free to fork and send your pull requests!
 
 ## Hack Day Paris
 
-This project has been created at [Hack Day Paris](http://hackdayparis.org/) - a Paris based 40-hour marathon of hyper-intensive design and development.
+This project has been created at [Hack Day Paris](http://hackdayparis.org/2011.html) - a Paris based 40-hour marathon of hyper-intensive design and development.
 
 ## Authors
 
