@@ -1,7 +1,7 @@
 CC=gcc
 UNAME=$(shell uname)
 CFLAGS= -Wall -Werror
-_Darwin_ldflags= -lm -lpthread
+_Darwin_ldflags= -lm -lpthread -framework CoreServices
 _Linux_ldflags= -lrt -lm -lpthread
 LDFLAGS=$(_$(UNAME)_ldflags)
 RAGEL=ragel -G2
