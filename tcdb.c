@@ -202,13 +202,13 @@ char *rk_tcdb_type(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   int type;
   if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return NULL;
   switch (type) {
-    case RK_TCDB_STRING: return tcsprintf("%s", "string");
-    case RK_TCDB_LIST: return tcsprintf("%s", "list");
-    case RK_TCDB_SET: return tcsprintf("%s", "set");
-    case RK_TCDB_ZSET: return tcsprintf("%s", "zset");
-    case RK_TCDB_HASH: return tcsprintf("%s", "hash");
+    case RK_TCDB_STRING: return tcstrdup("string");
+    case RK_TCDB_LIST: return tcstrdup("list");
+    case RK_TCDB_SET: return tcstrdup("set");
+    case RK_TCDB_ZSET: return tcstrdup("zset");
+    case RK_TCDB_HASH: return tcstrdup("hash");
   }
-  return tcsprintf("%s", "none");
+  return tcstrdup("none");
 }
 
 char *rk_tcdb_get(rk_tcdb_t *db, const char *kbuf, int ksiz, int *sp) {
