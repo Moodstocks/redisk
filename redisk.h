@@ -1,5 +1,5 @@
-#ifndef _REDISK_SKEL_
-#define _REDISK_SKEL_
+#ifndef _REDISK_H_
+#define _REDISK_H_
 
 #include <stdlib.h>
 #include <stdbool.h>

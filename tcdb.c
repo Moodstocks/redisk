@@ -16,14 +16,14 @@ enum {
 };
 
 /* Private macro */
-#define RKTCDBOCHECK(RK_type, RK_exp)                            \
+#define RKTCDBOCHECK(RK_type, RK_exp) \
   (((RK_type) >= 0 && (RK_type) != (RK_exp)) ? false : true)
 
 /** Private function prototypes */
 static int rk_tcdb_obj_search(rk_tcdb_t *db, const char *kbuf, int ksiz, int *type);
 static int64_t rk_tcdb_add_int(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t num);
-char *rk_tcdb_hash_get(TCTDB *db, const char *kbuf, int ksiz,
-                       const char *fbuf, int fsiz, int *sp);
+static char *rk_tcdb_hash_get(TCTDB *db, const char *kbuf, int ksiz,
+                              const char *fbuf, int fsiz, int *sp);
 static int rk_tcdb_hash_put(TCTDB *db, const char *kbuf, int ksiz,
                             const char *fbuf, int fsiz, const char *vbuf, int vsiz);
 static int rk_tcdb_hash_out(TCTDB *db, const char *kbuf, int ksiz,
@@ -35,7 +35,7 @@ static int rk_tcdb_hash_exists(TCTDB *db, const char *kbuf, int ksiz,
 static int rk_tcdb_hash_rnum(TCTDB *db, const char *kbuf, int ksiz);
 static TCLIST *rk_tcdb_hash_keys(TCTDB *db, const char *kbuf, int ksiz);
 
-/** 
+/**
  * NOTES
  * --
  *   So far the `str` table will *always* store values as raw data (i.e. pure
@@ -96,7 +96,7 @@ rk_tcdb_t *rk_tcdb_new(void) {
 void rk_tcdb_free(rk_tcdb_t *db) {
   assert(db);
   if (db->open) rk_tcdb_close(db);
-  free(db);  
+  free(db);
 }
 
 bool rk_tcdb_open(rk_tcdb_t *db, const char *path) {
@@ -142,7 +142,7 @@ bool rk_tcdb_open(rk_tcdb_t *db, const char *path) {
     if (str) tchdbdel(str);
     if (hsh) tctdbdel(hsh);
     if (set) tctdbdel(set);
-    if (lst) tcbdbdel(lst); 
+    if (lst) tcbdbdel(lst);
   }
   return !err;
 }
@@ -341,7 +341,7 @@ int rk_tcdb_hsetnx(rk_tcdb_t *db, const char *kbuf, int ksiz,
   int type;
   if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
   if (!RKTCDBOCHECK(type, RK_TCDB_HASH)) return -1;
-  return rk_tcdb_hash_put_keep(db->hsh, kbuf, ksiz, fbuf, fsiz, vbuf, vsiz);  
+  return rk_tcdb_hash_put_keep(db->hsh, kbuf, ksiz, fbuf, fsiz, vbuf, vsiz);
 }
 
 int rk_tcdb_hexists(rk_tcdb_t *db, const char *kbuf, int ksiz,
@@ -360,7 +360,7 @@ int rk_tcdb_hlen(rk_tcdb_t *db, const char *kbuf, int ksiz) {
   int type;
   if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
   if (!RKTCDBOCHECK(type, RK_TCDB_HASH)) return -1;
-  return rk_tcdb_hash_rnum(db->hsh, kbuf, ksiz);  
+  return rk_tcdb_hash_rnum(db->hsh, kbuf, ksiz);
 }
 
 int rk_tcdb_sadd(rk_tcdb_t *db, const char *kbuf, int ksiz,
@@ -370,7 +370,7 @@ int rk_tcdb_sadd(rk_tcdb_t *db, const char *kbuf, int ksiz,
   int type;
   if (rk_tcdb_obj_search(db, kbuf, ksiz, &type) < 0) return -1;
   if (!RKTCDBOCHECK(type, RK_TCDB_SET)) return -1;
-  return rk_tcdb_hash_put(db->set, kbuf, ksiz, mbuf, msiz, "", 0);              
+  return rk_tcdb_hash_put(db->set, kbuf, ksiz, mbuf, msiz, "", 0);
 }
 
 int rk_tcdb_srem(rk_tcdb_t *db, const char *kbuf, int ksiz,
@@ -586,7 +586,7 @@ static int rk_tcdb_obj_search(rk_tcdb_t *db, const char *kbuf, int ksiz, int *ty
   }
   tcbdbcurdel(cur);
   *type = RK_TCDB_NONE;
-  return 0;  
+  return 0;
 }
 
 static int64_t rk_tcdb_add_int(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_t num) {
@@ -613,8 +613,8 @@ static int64_t rk_tcdb_add_int(rk_tcdb_t *db, const char *kbuf, int ksiz, int64_
   return (err ? INT_MIN : rv);
 }
 
-char *rk_tcdb_hash_get(TCTDB *db, const char *kbuf, int ksiz,
-                       const char *fbuf, int fsiz, int *sp) {
+static char *rk_tcdb_hash_get(TCTDB *db, const char *kbuf, int ksiz,
+                              const char *fbuf, int fsiz, int *sp) {
   assert(db && kbuf && ksiz >= 0 && fbuf && fsiz >= 0 && sp);
   return tctdbget4(db, kbuf, ksiz, fbuf, fsiz, sp);
 }
@@ -661,7 +661,7 @@ static int rk_tcdb_hash_out(TCTDB *db, const char *kbuf, int ksiz,
     err = !tctdbput(db, kbuf, ksiz, cols);
   }
   if (cols) tcmapdel(cols);
-  return err ? -1 : rv;  
+  return err ? -1 : rv;
 }
 
 static int rk_tcdb_hash_put_keep(TCTDB *db, const char *kbuf, int ksiz,
@@ -684,7 +684,7 @@ static int rk_tcdb_hash_put_keep(TCTDB *db, const char *kbuf, int ksiz,
     err = !tctdbput(db, kbuf, ksiz, cols);
   }
   if (cols) tcmapdel(cols);
-  return err ? -1 : rv;                                       
+  return err ? -1 : rv;
 }
 
 static int rk_tcdb_hash_exists(TCTDB *db, const char *kbuf, int ksiz,
@@ -703,7 +703,7 @@ static int rk_tcdb_hash_exists(TCTDB *db, const char *kbuf, int ksiz,
   const void *rbuf = tcmapget(cols, fbuf, fsiz, &rsiz);
   int rv = (rbuf == NULL ? 0 : 1);
   if (cols) tcmapdel(cols);
-  return rv;                                     
+  return rv;
 }
 
 static int rk_tcdb_hash_rnum(TCTDB *db, const char *kbuf, int ksiz) {
@@ -719,7 +719,7 @@ static int rk_tcdb_hash_rnum(TCTDB *db, const char *kbuf, int ksiz) {
   if (!cols) return -1;
   int rv = tcmaprnum(cols) - 1;
   if (cols) tcmapdel(cols);
-  return rv;  
+  return rv;
 }
 
 static TCLIST *rk_tcdb_hash_keys(TCTDB *db, const char *kbuf, int ksiz) {
