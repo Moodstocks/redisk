@@ -5,7 +5,7 @@
 #include <signal.h>
 #include "resolving.h"
 #include "parser.h"
-#include "skel.h"
+#include "redisk.h"
 #include "tcdb.h"
 #include "deps/libuv/include/uv.h"
 

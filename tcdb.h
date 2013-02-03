@@ -5,7 +5,7 @@
 #include <tctdb.h>
 #include <tcbdb.h>
 
-#include "skel.h"
+#include "redisk.h"
 
 typedef struct rk_tcdb_t_ {
   bool open;                /* successful open flag */

@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "skel.h"
+#include "redisk.h"
 
 #define RK_DO_PROTO(name) int rk_do_ ## \
   name(rk_skel_t *skel, int argc, char *argv[], size_t *args, int *rsiz, char **rbuf)
