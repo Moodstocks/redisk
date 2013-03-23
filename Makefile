@@ -8,13 +8,13 @@ RAGEL=ragel -G2
 
 CBUILD=$(CC) $(CFLAGS)
 
-REDISK_DEPS= server.c parser.o resolving.o tcdb.o deps/libuv/uv.a deps/tokyocabinet-1.4.47/libtokyocabinet.a
+REDISK_DEPS= server.c parser.o resolving.o tcdb.o deps/libuv/libuv.a deps/tokyocabinet-1.4.47/libtokyocabinet.a
 
 all: redisk parser-test redis-cli-test
 
-deps/libuv/uv.a:
+deps/libuv/libuv.a:
 	$(MAKE) -C deps/libuv
-	
+
 deps/tokyocabinet-1.4.47/libtokyocabinet.a:
 	@/bin/bash -c "pushd deps/tokyocabinet-1.4.47;\
 	./configure --disable-shared --disable-zlib \

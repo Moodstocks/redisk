@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
   uv_tcp_bind(&server, address);
   uv_listen((uv_stream_t *)&server, 128, on_connect);
   printf("listening on port %d\n",port);
-  uv_run(uv_loop);
+  uv_run(uv_loop, UV_RUN_DEFAULT);
   return 0;
 }
 
